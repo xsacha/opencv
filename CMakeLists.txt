@@ -44,6 +44,12 @@ if(DEFINED CMAKE_BUILD_TYPE)
   set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
 endif()
 
+include("cmake/HunterGate.cmake")
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.8.9.tar.gz"
+    SHA1 "a63185bfe1235b42a4644e84ab121c7ac4a0db65"
+)
+
 project(OpenCV CXX C)
 
 if(MSVC)
