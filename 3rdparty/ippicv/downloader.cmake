@@ -57,6 +57,11 @@ function(_icv_downloader)
     endif()
   endif()
 
+  if(HUNTER_ENABLED)
+    hunter_add_package(ippicv)
+    set(OPENCV_ICV_URL "file://${IPPICV_ROOT}")
+  endif()
+
   if(NOT EXISTS "${OPENCV_ICV_PACKAGE_ARCHIVE}")
     if(NOT DEFINED OPENCV_ICV_URL)
       if(DEFINED ENV{OPENCV_ICV_URL})
