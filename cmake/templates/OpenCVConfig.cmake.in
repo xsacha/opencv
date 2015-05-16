@@ -411,3 +411,17 @@ macro(ocv_list_filterout lst regex)
     endif()
   endforeach()
 endmacro()
+
+include(CMakeFindDependencyMacro)
+
+if("@ZLIB_FOUND@")
+  find_dependency(ZLIB CONFIG)
+endif()
+
+if("@TIFF_FOUND@")
+  find_dependency(TIFF CONFIG)
+endif()
+
+if("@PNG_FOUND@")
+  find_dependency(PNG CONFIG)
+endif()
