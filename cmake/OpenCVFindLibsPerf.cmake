@@ -50,8 +50,18 @@ To eliminate this warning remove WITH_CUDA=ON CMake configuration option.
 endif(WITH_CUDA)
 
 # --- Eigen ---
-if(WITH_EIGEN AND NOT HAVE_EIGEN)
-  find_package(Eigen3 QUIET)
+if(WITH_EIGEN)
+  if(HUNTER_ENABLED)
+    hunter_add_package(Eigen)
+    find_package(Eigen REQUIRED)
+    get_target_property(
+        EIGEN_INCLUDE_PATH
+        Eigen::eigen
+        INTERFACE_INCLUDE_DIRECTORIES
+    )
+  else()
+    find_package(Eigen3 QUIET)
+  endif()
 
   if(Eigen3_FOUND)
     if(TARGET Eigen3::Eigen)
