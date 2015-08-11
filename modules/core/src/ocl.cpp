@@ -1510,8 +1510,7 @@ class AmdBlasHelper
 public:
     static AmdBlasHelper & getInstance()
     {
-        static AmdBlasHelper amdBlas;
-        return amdBlas;
+        CV_SINGLETON_LAZY_INIT_REF(AmdBlasHelper, new AmdBlasHelper())
     }
 
     bool isAvailable() const
@@ -1533,35 +1532,36 @@ protected:
     {
         if (!g_isAmdBlasInitialized)
         {
-            AutoLock lock(m);
+            AutoLock lock(getInitializationMutex());
 
-            if (!g_isAmdBlasInitialized && haveOpenCL())
+            if (!g_isAmdBlasInitialized)
             {
-                try
+                if (haveOpenCL())
                 {
-                    g_isAmdBlasAvailable = clAmdBlasSetup() == clAmdBlasSuccess;
+                    try
+                    {
+                        g_isAmdBlasAvailable = clAmdBlasSetup() == clAmdBlasSuccess;
+                    }
+                    catch (...)
+                    {
+                        g_isAmdBlasAvailable = false;
+                    }
                 }
-                catch (...)
-                {
+                else
                     g_isAmdBlasAvailable = false;
-                }
-            }
-            else
-                g_isAmdBlasAvailable = false;
 
-            g_isAmdBlasInitialized = true;
+                g_isAmdBlasInitialized = true;
+            }
         }
     }
 
 private:
-    static Mutex m;
     static bool g_isAmdBlasInitialized;
     static bool g_isAmdBlasAvailable;
 };
 
 bool AmdBlasHelper::g_isAmdBlasAvailable = false;
 bool AmdBlasHelper::g_isAmdBlasInitialized = false;
-Mutex AmdBlasHelper::m;
 
 bool haveAmdBlas()
 {
@@ -1584,8 +1584,7 @@ class AmdFftHelper
 public:
     static AmdFftHelper & getInstance()
     {
-        static AmdFftHelper amdFft;
-        return amdFft;
+        CV_SINGLETON_LAZY_INIT_REF(AmdFftHelper, new AmdFftHelper())
     }
 
     bool isAvailable() const
@@ -1607,34 +1606,36 @@ protected:
     {
         if (!g_isAmdFftInitialized)
         {
-            AutoLock lock(m);
+            AutoLock lock(getInitializationMutex());
 
-            if (!g_isAmdFftInitialized && haveOpenCL())
+            if (!g_isAmdFftInitialized)
             {
-                try
+                if (haveOpenCL())
                 {
-                    cl_uint major, minor, patch;
-                    CV_Assert(clAmdFftInitSetupData(&setupData) == CLFFT_SUCCESS);
+                    try
+                    {
+                        cl_uint major, minor, patch;
+                        CV_Assert(clAmdFftInitSetupData(&setupData) == CLFFT_SUCCESS);
 
-                    // it throws exception in case AmdFft binaries are not found
-                    CV_Assert(clAmdFftGetVersion(&major, &minor, &patch) == CLFFT_SUCCESS);
-                    g_isAmdFftAvailable = true;
+                        // it throws exception in case AmdFft binaries are not found
+                        CV_Assert(clAmdFftGetVersion(&major, &minor, &patch) == CLFFT_SUCCESS);
+                        g_isAmdFftAvailable = true;
+                    }
+                    catch (const Exception &)
+                    {
+                        g_isAmdFftAvailable = false;
+                    }
                 }
-                catch (const Exception &)
-                {
+                else
                     g_isAmdFftAvailable = false;
-                }
-            }
-            else
-                g_isAmdFftAvailable = false;
 
-            g_isAmdFftInitialized = true;
+                g_isAmdFftInitialized = true;
+            }
         }
     }
 
 private:
     static clAmdFftSetupData setupData;
-    static Mutex m;
     static bool g_isAmdFftInitialized;
     static bool g_isAmdFftAvailable;
 };
@@ -1642,7 +1643,6 @@ private:
 clAmdFftSetupData AmdFftHelper::setupData;
 bool AmdFftHelper::g_isAmdFftAvailable = false;
 bool AmdFftHelper::g_isAmdFftInitialized = false;
-Mutex AmdFftHelper::m;
 
 bool haveAmdFft()
 {
@@ -4320,6 +4320,7 @@ public:
         u->flags = flags0;
         u->allocatorFlags_ = allocatorFlags;
         CV_DbgAssert(!u->tempUMat()); // for bufferPool.release() consistency in deallocate()
+        u->markHostCopyObsolete(true);
         return u;
     }
 
@@ -4460,6 +4461,7 @@ public:
         CV_Assert(u->handle != 0 && u->urefcount == 0);
         if(u->tempUMat())
         {
+            CV_Assert(u->origdata);
 //            UMatDataAutoLock lock(u);
 
             if( u->hostCopyObsolete() && u->refcount > 0 )
@@ -4514,7 +4516,7 @@ public:
                     }
                     else
                     {
-                        // TODO Is it really needed for clCreateBuffer with CL_MEM_USE_HOST_PTR?
+                        // CL_MEM_USE_HOST_PTR (nothing is required) and OTHER cases
                         cl_int retval = 0;
                         void* data = clEnqueueMapBuffer(q, (cl_mem)u->handle, CL_TRUE,
                                                         (CL_MAP_READ | CL_MAP_WRITE),
@@ -4545,20 +4547,27 @@ public:
                 clReleaseMemObject((cl_mem)u->handle);
             }
             u->handle = 0;
+            u->markDeviceCopyObsolete(true);
             u->currAllocator = u->prevAllocator;
-            if(u->data && u->copyOnMap() && !(u->flags & UMatData::USER_ALLOCATED))
+            u->prevAllocator = NULL;
+            if(u->data && u->copyOnMap() && u->data != u->origdata)
                 fastFree(u->data);
             u->data = u->origdata;
             if(u->refcount == 0)
+            {
                 u->currAllocator->deallocate(u);
+                u = NULL;
+            }
         }
         else
         {
+            CV_Assert(u->origdata == NULL);
             CV_Assert(u->refcount == 0);
-            if(u->data && u->copyOnMap() && !(u->flags & UMatData::USER_ALLOCATED))
+            if(u->data && u->copyOnMap() && u->data != u->origdata)
             {
                 fastFree(u->data);
                 u->data = 0;
+                u->markHostCopyObsolete(true);
             }
             if (u->allocatorFlags_ & ALLOCATOR_FLAGS_BUFFER_POOL_USED)
             {
@@ -4598,8 +4607,11 @@ public:
                 clReleaseMemObject((cl_mem)u->handle);
             }
             u->handle = 0;
+            u->markDeviceCopyObsolete(true);
             delete u;
+            u = NULL;
         }
+        CV_Assert(u == NULL || u->refcount);
     }
 
     void map(UMatData* u, int accessFlags) const
@@ -4650,9 +4662,9 @@ public:
                     return;
                 }
 #endif
-                if (u->data) // FIXIT Workaround for UMat synchronization issue
+                if (!u->hostCopyObsolete()) // FIXIT Workaround for UMat synchronization issue
                 {
-                    //CV_Assert(u->hostCopyObsolete() == false);
+                    CV_Assert(u->data);
                     return;
                 }
 
@@ -4732,7 +4744,7 @@ public:
                 }
                 u->data = 0;
                 u->markDeviceCopyObsolete(false);
-                u->markHostCopyObsolete(false);
+                u->markHostCopyObsolete(true);
                 return;
             }
 #endif
@@ -4755,7 +4767,7 @@ public:
                                 u->size, alignedPtr.getAlignedPtr(), 0, 0, 0)) == CL_SUCCESS );
         }
         u->markDeviceCopyObsolete(false);
-        u->markHostCopyObsolete(false);
+        u->markHostCopyObsolete(true);
     }
 
     bool checkContinuous(int dims, const size_t sz[],
@@ -5237,15 +5249,9 @@ public:
     MatAllocator* matStdAllocator;
 };
 
-// This line should not force OpenCL runtime initialization! (don't put "new OpenCLAllocator()" here)
-static MatAllocator *ocl_allocator = NULL;
 MatAllocator* getOpenCLAllocator()
 {
-    if (ocl_allocator == NULL)
-    {
-        ocl_allocator = new OpenCLAllocator();
-    }
-    return ocl_allocator;
+    CV_SINGLETON_LAZY_INIT(MatAllocator, new OpenCLAllocator())
 }
 
 }} // namespace cv::ocl
