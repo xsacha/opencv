@@ -87,8 +87,8 @@ endif()
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.10.4.tar.gz"
-    SHA1 "603c2b5f10c5b6e50628cd0b0cc5c1167cb36bfc"
+    URL "http://192.168.2.27/packages/hunter/hunter-project-v1.0.35.tar.gz"
+    SHA1 "0d21c4a07f34130fc9dcef7f1afca5b41469a6d5"
 )
 
 project(OpenCV CXX C)
