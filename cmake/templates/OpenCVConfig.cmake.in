@@ -361,3 +361,9 @@ macro(ocv_list_filterout lst regex)
     endif()
   endforeach()
 endmacro()
+
+include(CMakeFindDependencyMacro)
+
+if("@JPEG_FOUND@")
+  find_dependency(JPEG CONFIG)
+endif()
