@@ -299,11 +299,17 @@ if(WITH_AVFOUNDATION)
 endif()
 
 # --- QuickTime ---
+OCV_OPTION(WITH_QTKIT "Use QTKit framework (if WITH_QUICKTIME == NO)" YES)
+
 if (NOT IOS)
   if(WITH_QUICKTIME)
     set(HAVE_QUICKTIME YES)
   elseif(APPLE AND CMAKE_COMPILER_IS_CLANGCXX)
-    set(HAVE_QTKIT YES)
+    if(WITH_QTKIT)
+      set(HAVE_QTKIT YES) # always YES
+    else()
+      set(HAVE_QTKIT NO) # force NO
+    endif()
   endif()
 endif()
 
