@@ -64,7 +64,7 @@ set(highgui_srcs
     src/window.cpp
     )
 
-file(GLOB highgui_ext_hdrs "include/opencv2/${name}/*.hpp" "include/opencv2/${name}/*.h")
+file(GLOB highgui_ext_hdrs "include/opencv2/*.hpp" "include/opencv2/${name}/*.hpp" "include/opencv2/${name}/*.h")
 
 if(HAVE_QT5)
   set(CMAKE_AUTOMOC ON)
@@ -292,7 +292,7 @@ endif()
 set_target_properties(${the_module} PROPERTIES LINK_INTERFACE_LIBRARIES "")
 
 ocv_add_precompiled_headers(${the_module})
-ocv_warnings_disable(CMAKE_CXX_FLAGS -Wno-deprecated-declarations)
+ocv_warnings_disable(CMAKE_CXX_FLAGS -Wno-deprecated-declarations -Wno-clobbered)
 
 if(WIN32 AND WITH_FFMPEG)
   #copy ffmpeg dll to the output folder

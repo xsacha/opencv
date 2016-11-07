@@ -12,8 +12,8 @@ endif(WITH_VFW)
 
 # --- GStreamer ---
 ocv_clear_vars(HAVE_GSTREAMER)
-# try to find gstreamer 1.x first
-if(WITH_GSTREAMER)
+# try to find gstreamer 1.x first if 0.10 was not requested
+if(WITH_GSTREAMER AND NOT WITH_GSTREAMER_0_10)
   CHECK_MODULE(gstreamer-base-1.0 HAVE_GSTREAMER_BASE)
   CHECK_MODULE(gstreamer-video-1.0 HAVE_GSTREAMER_VIDEO)
   CHECK_MODULE(gstreamer-app-1.0 HAVE_GSTREAMER_APP)
@@ -29,7 +29,7 @@ if(WITH_GSTREAMER)
       set(GSTREAMER_PBUTILS_VERSION ${ALIASOF_gstreamer-pbutils-1.0_VERSION})
   endif()
 
-endif(WITH_GSTREAMER)
+endif()
 
 # gstreamer support was requested but could not find gstreamer 1.x,
 # so fallback/try to find gstreamer 0.10
@@ -190,7 +190,7 @@ if(WITH_XIMEA)
 endif(WITH_XIMEA)
 
 # --- FFMPEG ---
-ocv_clear_vars(HAVE_FFMPEG HAVE_FFMPEG_CODEC HAVE_FFMPEG_FORMAT HAVE_FFMPEG_UTIL HAVE_FFMPEG_SWSCALE HAVE_GENTOO_FFMPEG HAVE_FFMPEG_FFMPEG)
+ocv_clear_vars(HAVE_FFMPEG HAVE_FFMPEG_CODEC HAVE_FFMPEG_FORMAT HAVE_FFMPEG_UTIL HAVE_FFMPEG_SWSCALE HAVE_FFMPEG_RESAMPLE HAVE_GENTOO_FFMPEG HAVE_FFMPEG_FFMPEG)
 if(WITH_FFMPEG)
   if(WIN32 AND NOT ARM)
     include("${OpenCV_SOURCE_DIR}/3rdparty/ffmpeg/ffmpeg_version.cmake")
@@ -199,6 +199,7 @@ if(WITH_FFMPEG)
     CHECK_MODULE(libavformat HAVE_FFMPEG_FORMAT)
     CHECK_MODULE(libavutil HAVE_FFMPEG_UTIL)
     CHECK_MODULE(libswscale HAVE_FFMPEG_SWSCALE)
+    CHECK_MODULE(libavresample HAVE_FFMPEG_RESAMPLE)
 
     CHECK_INCLUDE_FILE(libavformat/avformat.h HAVE_GENTOO_FFMPEG)
     CHECK_INCLUDE_FILE(ffmpeg/avformat.h HAVE_FFMPEG_FFMPEG)

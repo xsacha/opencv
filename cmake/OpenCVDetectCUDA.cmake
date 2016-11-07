@@ -35,7 +35,18 @@ if(CUDA_FOUND)
 
   if(WITH_NVCUVID)
     find_cuda_helper_libs(nvcuvid)
-    set(HAVE_NVCUVID 1)
+
+    if(WIN32)
+      find_cuda_helper_libs(nvcuvenc)
+    endif()
+
+    if(CUDA_nvcuvid_LIBRARY)
+      set(HAVE_NVCUVID 1)
+    endif()
+
+    if(CUDA_nvcuvenc_LIBRARY)
+      set(HAVE_NVCUVENC 1)
+    endif()
   endif()
 
   message(STATUS "CUDA detected: " ${CUDA_VERSION})
@@ -86,7 +97,7 @@ if(CUDA_FOUND)
         set(__cuda_arch_bin "3.2")
         set(__cuda_arch_ptx "")
       elseif(AARCH64)
-        set(__cuda_arch_bin "5.2")
+        set(__cuda_arch_bin "5.3")
         set(__cuda_arch_ptx "")
       endif()
     else()

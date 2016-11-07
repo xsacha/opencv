@@ -132,7 +132,7 @@ html_logo = 'opencv-logo-white.png'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = []
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -315,7 +315,7 @@ extlinks = {
 
             # 'opencv_group' : ('http://answers.opencv.org/%s', None),
             'opencv_qa' : ('http://answers.opencv.org/%s', None),
-            'how_to_contribute' : ('http://code.opencv.org/projects/opencv/wiki/How_to_contribute/%s', None),
+            'how_to_contribute' : ('https://github.com/opencv/opencv/wiki/How_to_contribute/%s', None),
 
             'cvt_color' : ('http://docs.opencv.org/modules/imgproc/doc/miscellaneous_transformations.html?highlight=cvtcolor#cvtcolor%s', None),
             'imread' : ('http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread%s', None),
