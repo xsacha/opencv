@@ -80,7 +80,7 @@ Code
         * Display the numerical matching parameters obtained.
 
    * **Downloadable code**:
-     Click `here <https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/Histograms_Matching/compareHist_Demo.cpp>`_
+     Click `here <https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/Histograms_Matching/compareHist_Demo.cpp>`_
 
    * **Code at glance:**
 
@@ -93,7 +93,7 @@ Code
 Explanation
 ===========
 
-#. Declare variables such as the matrices to store the base image and the two other images to compare ( RGB and HSV )
+#. Declare variables such as the matrices to store the base image and the two other images to compare ( BGR and HSV )
 
    .. code-block:: cpp
 

@@ -70,7 +70,7 @@ Erosion
 Code
 ======
 
-This tutorial code's is shown lines below. You can also download it from `here <https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/ImgProc/Morphology_1.cpp>`_
+This tutorial code's is shown lines below. You can also download it from `here <https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/ImgProc/Morphology_1.cpp>`_
 
 .. code-block:: cpp
 
@@ -177,7 +177,7 @@ Explanation
 
    .. container:: enumeratevisibleitemswithsquare
 
-      * Load an image (can be RGB or grayscale)
+      * Load an image (can be BGR or grayscale)
       * Create two windows (one for dilation output, the other for erosion)
       * Create a set of 02 Trackbars for each operation:
 

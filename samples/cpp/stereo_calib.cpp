@@ -19,7 +19,7 @@
      Online docs:   http://docs.opencv.org
      Q&A forum:     http://answers.opencv.org
      Issue tracker: http://code.opencv.org
-     GitHub:        https://github.com/Itseez/opencv/
+     GitHub:        https://github.com/opencv/opencv/
    ************************************************** */
 
 #include "opencv2/calib3d/calib3d.hpp"
@@ -158,7 +158,7 @@ StereoCalib(const vector<string>& imagelist, Size boardSize, bool useCalibrated=
     {
         for( j = 0; j < boardSize.height; j++ )
             for( k = 0; k < boardSize.width; k++ )
-                objectPoints[i].push_back(Point3f(j*squareSize, k*squareSize, 0));
+                objectPoints[i].push_back(Point3f(k*squareSize, j*squareSize, 0));
     }
 
     cout << "Running stereo calibration ...\n";
@@ -236,7 +236,7 @@ StereoCalib(const vector<string>& imagelist, Size boardSize, bool useCalibrated=
         fs.release();
     }
     else
-        cout << "Error: can not save the intrinsic parameters\n";
+        cout << "Error: can not save the extrinsic parameters\n";
 
     // OpenCV can handle left-right
     // or up-down camera arrangements

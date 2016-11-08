@@ -22,7 +22,11 @@ endif()
 if(INSTALL_C_EXAMPLES)
   install(FILES "CMakeLists.txt"
           DESTINATION ${OPENCV_SAMPLES_SRC_INSTALL_PATH}
-          PERMISSIONS OWNER_READ GROUP_READ WORLD_READ COMPONENT samples)
+          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ COMPONENT samples)
+endif()
+
+if(INSTALL_PYTHON_EXAMPLES)
+  add_subdirectory(python2)
 endif()
 
 #
@@ -64,8 +68,14 @@ endif()
 
 add_subdirectory(c)
 add_subdirectory(cpp)
-add_subdirectory(ocl)
-add_subdirectory(gpu)
+ocv_check_dependencies(opencv_ocl)
+if (OCV_DEPENDENCIES_FOUND)
+  add_subdirectory(ocl)
+endif()
+ocv_check_dependencies(opencv_gpu)
+if (OCV_DEPENDENCIES_FOUND)
+  add_subdirectory(gpu)
+endif()
 
 #
 # END OF BUILD CASE 2: Build samples with library binaries

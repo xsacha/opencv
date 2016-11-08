@@ -294,6 +294,10 @@ Command line arguments of ``opencv_traincascade`` application grouped by purpose
 
         This argument is actual in case of Haar-like features. If it is specified, the cascade will be saved in the old format.
 
+    * ``-acceptanceRatioBreakValue``
+
+        This argument is used to determine how precise your model should keep learning and when to stop. A good guideline is to train not further than 10e-5, to ensure the model does not overtrain on your training data. By default this value is set to -1 to disable this feature.
+
 #.
 
     Cascade parameters:
@@ -322,11 +326,11 @@ Command line arguments of ``opencv_traincascade`` application grouped by purpose
 
     * ``-minHitRate <min_hit_rate>``
 
-        Minimal desired hit rate for each stage of the classifier. Overall hit rate may be estimated as (min_hit_rate^number_of_stages).
+        Minimal desired hit rate for each stage of the classifier. Overall hit rate may be estimated as (min_hit_rate ^ number_of_stages) [Viola2004]_.
 
     * ``-maxFalseAlarmRate <max_false_alarm_rate>``
 
-      Maximal desired false alarm rate for each stage of the classifier. Overall false alarm rate may be estimated as (max_false_alarm_rate^number_of_stages).
+      Maximal desired false alarm rate for each stage of the classifier. Overall false alarm rate may be estimated as (max_false_alarm_rate ^ number_of_stages) [Viola2004]_.
 
     * ``-weightTrimRate <weight_trim_rate>``
 
@@ -358,7 +362,9 @@ After the ``opencv_traincascade`` application has finished its work, the trained
 
 Training is finished and you can test you cascade classifier!
 
-.. [Viola2001] Paul Viola, Michael Jones. *Rapid Object Detection using a Boosted Cascade of Simple Features*. Conference on Computer Vision and Pattern Recognition (CVPR), 2001, pp. 511-518.
+.. [Viola2001] Paul Viola, Michael J. Jones. *Rapid Object Detection using a Boosted Cascade of Simple Features*. Conference on Computer Vision and Pattern Recognition (CVPR), 2001, pp. 511-518.
+
+.. [Viola2004] Paul Viola, Michael J. Jones. *Robust real-time face detection*. International Journal of Computer Vision, 57(2):137–154, 2004.
 
 .. [Rainer2002] Rainer Lienhart and Jochen Maydt. *An Extended Set of Haar-like Features for Rapid Object Detection*. Submitted to ICIP2002.
 

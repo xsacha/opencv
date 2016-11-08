@@ -17,110 +17,15 @@ import argparse
 
 import cv2.cv as cv
 
-from test2 import *
+from tests_common import OpenCVTests, NewOpenCVTests
 
-class OpenCVTests(unittest.TestCase):
+basedir = os.path.abspath(os.path.dirname(__file__))
 
-    # path to local repository folder containing 'samples' folder
-    repoPath = None
-    # github repository url
-    repoUrl = 'https://raw.github.com/Itseez/opencv/2.4'
-    # path to local folder containing 'camera_calibration.tar.gz'
-    dataPath = None
-    # data url
-    dataUrl = 'http://docs.opencv.org/data'
-
-    depths = [ cv.IPL_DEPTH_8U, cv.IPL_DEPTH_8S, cv.IPL_DEPTH_16U, cv.IPL_DEPTH_16S, cv.IPL_DEPTH_32S, cv.IPL_DEPTH_32F, cv.IPL_DEPTH_64F ]
-
-    mat_types = [
-        cv.CV_8UC1,
-        cv.CV_8UC2,
-        cv.CV_8UC3,
-        cv.CV_8UC4,
-        cv.CV_8SC1,
-        cv.CV_8SC2,
-        cv.CV_8SC3,
-        cv.CV_8SC4,
-        cv.CV_16UC1,
-        cv.CV_16UC2,
-        cv.CV_16UC3,
-        cv.CV_16UC4,
-        cv.CV_16SC1,
-        cv.CV_16SC2,
-        cv.CV_16SC3,
-        cv.CV_16SC4,
-        cv.CV_32SC1,
-        cv.CV_32SC2,
-        cv.CV_32SC3,
-        cv.CV_32SC4,
-        cv.CV_32FC1,
-        cv.CV_32FC2,
-        cv.CV_32FC3,
-        cv.CV_32FC4,
-        cv.CV_64FC1,
-        cv.CV_64FC2,
-        cv.CV_64FC3,
-        cv.CV_64FC4,
-    ]
-    mat_types_single = [
-        cv.CV_8UC1,
-        cv.CV_8SC1,
-        cv.CV_16UC1,
-        cv.CV_16SC1,
-        cv.CV_32SC1,
-        cv.CV_32FC1,
-        cv.CV_64FC1,
-    ]
-
-    def depthsize(self, d):
-        return { cv.IPL_DEPTH_8U : 1,
-                 cv.IPL_DEPTH_8S : 1,
-                 cv.IPL_DEPTH_16U : 2,
-                 cv.IPL_DEPTH_16S : 2,
-                 cv.IPL_DEPTH_32S : 4,
-                 cv.IPL_DEPTH_32F : 4,
-                 cv.IPL_DEPTH_64F : 8 }[d]
-
-    def get_sample(self, filename, iscolor = cv.CV_LOAD_IMAGE_COLOR):
-        if not filename in self.image_cache:
-            filedata = None
-            if OpenCVTests.repoPath is not None:
-                candidate = OpenCVTests.repoPath + '/' + filename
-                if os.path.isfile(candidate):
-                    with open(candidate, 'rb') as f:
-                        filedata = f.read()
-            if filedata is None:
-                filedata = urllib.urlopen(OpenCVTests.repoUrl + '/' + filename).read()
-            imagefiledata = cv.CreateMatHeader(1, len(filedata), cv.CV_8UC1)
-            cv.SetData(imagefiledata, filedata, len(filedata))
-            self.image_cache[filename] = cv.DecodeImageM(imagefiledata, iscolor)
-        return self.image_cache[filename]
-
-    def get_data(self, filename, urlbase):
-        if (not os.path.isfile(filename)):
-            if OpenCVTests.dataPath is not None:
-                candidate = OpenCVTests.dataPath + '/' + filename
-                if os.path.isfile(candidate):
-                    return candidate
-            urllib.urlretrieve(urlbase + '/' + filename, filename)
-        return filename
-
-    def setUp(self):
-        self.image_cache = {}
-
-    def snap(self, img):
-        self.snapL([img])
-
-    def snapL(self, L):
-        for i,img in enumerate(L):
-            cv.NamedWindow("snap-%d" % i, 1)
-            cv.ShowImage("snap-%d" % i, img)
-        cv.WaitKey()
-        cv.DestroyAllWindows()
-
-    def hashimg(self, im):
-        """ Compute a hash for an image, useful for image comparisons """
-        return hashlib.md5(im.tostring()).digest()
+def load_tests(loader, tests, pattern):
+    tests.addTests(loader.discover(basedir, pattern='nonfree_*.py'))
+    tests.addTests(loader.discover(basedir, pattern='test_*.py'))
+    tests.addTests(loader.discover(basedir, pattern='test2.py'))
+    return tests
 
 # Tests to run first; check the handful of basic operations that the later tests rely on
 
@@ -421,23 +326,6 @@ class FunctionTests(OpenCVTests):
         im = cv.CreateImage((512,512), cv.IPL_DEPTH_8U, 3)
         cv.SetZero(im)
         cv.DrawChessboardCorners(im, (5, 5), [ ((i/5)*100+50,(i%5)*100+50) for i in range(5 * 5) ], 1)
-
-    def test_ExtractSURF(self):
-        img = self.get_sample("samples/c/lena.jpg", 0)
-        w,h = cv.GetSize(img)
-        for hessthresh in [ 300,400,500]:
-            for dsize in [0,1]:
-                for layers in [1,3,10]:
-                    kp,desc = cv.ExtractSURF(img, None, cv.CreateMemStorage(), (dsize, hessthresh, 3, layers))
-                    self.assert_(len(kp) == len(desc))
-                    for d in desc:
-                        self.assert_(len(d) == {0:64, 1:128}[dsize])
-                    for pt,laplacian,size,dir,hessian in kp:
-                        self.assert_((0 <= pt[0]) and (pt[0] <= w))
-                        self.assert_((0 <= pt[1]) and (pt[1] <= h))
-                        self.assert_(laplacian in [-1, 0, 1])
-                        self.assert_((0 <= dir) and (dir <= 360))
-                        self.assert_(hessian >= hessthresh)
 
     def test_FillPoly(self):
         scribble = cv.CreateImage((640,480), cv.IPL_DEPTH_8U, 1)
@@ -1629,7 +1517,7 @@ class AreaTests(OpenCVTests):
                             (0,255,0))
         self.snap(scribble)
 
-    def test_calibration(self):
+    def xxx_test_calibration(self):
 
         def get_corners(mono, refine = False):
             (ok, corners) = cv.FindChessboardCorners(mono, (num_x_ints, num_y_ints), cv.CV_CALIB_CB_ADAPTIVE_THRESH | cv.CV_CALIB_CB_NORMALIZE_IMAGE)
@@ -2239,36 +2127,21 @@ if __name__ == '__main__':
     print "Local repo path:", args.repo
     print "Local data path:", args.data
     OpenCVTests.repoPath = args.repo
-    OpenCVTests.dataPath = args.data
+    NewOpenCVTests.repoPath = args.repo
+    if args.repo is None:
+        try:
+            OpenCVTests.repoPath = os.environ['OPENCV_TEST_DATA_PATH']
+            NewOpenCVTests.repoPath = OpenCVTests.repoPath
+        except KeyError:
+            print('Missing opencv samples data. Some of tests may fail.')
+    try:
+        OpenCVTests.dataPath = os.environ['OPENCV_TEST_DATA_PATH']
+        NewOpenCVTests.extraTestDataPath = OpenCVTests.dataPath
+    except KeyError:
+        OpenCVTests.dataPath = args.data
+        NewOpenCVTests.extraTestDataPath = args.data
+        if args.data is None:
+            print('Missing opencv extra repository. Some of tests may fail.')
     random.seed(0)
     unit_argv = [sys.argv[0]] + other;
     unittest.main(argv=unit_argv)
-#    optlist, args = getopt.getopt(sys.argv[1:], 'l:rd')
-#    loops = 1
-#    shuffle = 0
-#    doc_frags = False
-#    for o,a in optlist:
-#        if o == '-l':
-#            loops = int(a)
-#        if o == '-r':
-#            shuffle = 1
-#        if o == '-d':
-#            doc_frags = True
-#
-#    cases = [PreliminaryTests, FunctionTests, AreaTests]
-#    if doc_frags:
-#        cases += [DocumentFragmentTests]
-#    everything = [(tc, t) for tc in cases for t in unittest.TestLoader().getTestCaseNames(tc) ]
-#    if len(args) == 0:
-#        # cases = [NewTests]
-#        args = everything
-#    else:
-#        args = [(tc, t) for (tc, t) in everything if t in args]
-#
-#    suite = unittest.TestSuite()
-#    for l in range(loops):
-#        if shuffle:
-#            random.shuffle(args)
-#        for tc,t in args:
-#            suite.addTest(tc(t))
-#	    unittest.TextTestRunner(verbosity=2).run(suite)

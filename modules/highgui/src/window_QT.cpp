@@ -406,13 +406,14 @@ static CvBar* icvFindBarByName(QBoxLayout* layout, QString name_bar, typeBar typ
 static CvTrackbar* icvFindTrackBarByName(const char* name_trackbar, const char* name_window, QBoxLayout* layout = NULL)
 {
     QString nameQt(name_trackbar);
+    QString nameWinQt(name_window);
 
-    if (!name_window && global_control_panel) //window name is null and we have a control panel
+    if (nameWinQt.isEmpty() && global_control_panel) //window name is null and we have a control panel
         layout = global_control_panel->myLayout;
 
     if (!layout)
     {
-        QPointer<CvWindow> w = icvFindWindowByName(QLatin1String(name_window));
+        QPointer<CvWindow> w = icvFindWindowByName(nameWinQt);
 
         if (!w)
             CV_Error(CV_StsNullPtr, "NULL window handler");
@@ -1848,7 +1849,7 @@ bool CvWindow::isOpenGl()
 
 void CvWindow::setViewportSize(QSize _size)
 {
-    myView->getWidget()->resize(_size);
+    resize(_size);
     myView->setSize(_size);
 }
 

@@ -39,11 +39,11 @@ if(PYTHON_EXECUTABLE)
   if(NOT ANDROID AND NOT IOS)
     ocv_check_environment_variables(PYTHON_LIBRARY PYTHON_INCLUDE_DIR)
     if(CMAKE_CROSSCOMPILING)
-      find_host_package(PythonLibs ${PYTHON_VERSION_MAJOR_MINOR})
+      find_package(PythonLibs ${PYTHON_VERSION_MAJOR_MINOR})
     elseif(CMAKE_VERSION VERSION_GREATER 2.8.8 AND PYTHON_VERSION_FULL)
-      find_host_package(PythonLibs ${PYTHON_VERSION_FULL} EXACT)
+      find_package(PythonLibs ${PYTHON_VERSION_FULL} EXACT)
     else()
-      find_host_package(PythonLibs ${PYTHON_VERSION_FULL})
+      find_package(PythonLibs ${PYTHON_VERSION_FULL})
     endif()
     # cmake 2.4 (at least on Ubuntu 8.04 (hardy)) don't define PYTHONLIBS_FOUND
     if(NOT PYTHONLIBS_FOUND AND PYTHON_INCLUDE_PATH)
@@ -123,10 +123,11 @@ if(PYTHON_EXECUTABLE)
     find_host_program(SPHINX_BUILD sphinx-build)
     if(SPHINX_BUILD)
         execute_process(COMMAND "${SPHINX_BUILD}"
-                        OUTPUT_QUIET
-                        ERROR_VARIABLE SPHINX_OUTPUT
+                        ERROR_VARIABLE SPHINX_STDERR
+                        OUTPUT_VARIABLE SPHINX_STDOUT
                         OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if(SPHINX_OUTPUT MATCHES "Sphinx v([0-9][^ \n]*)")
+        if(SPHINX_STDERR MATCHES "Sphinx v([0-9][^ \n]*)"
+            OR SPHINX_STDOUT MATCHES "Sphinx v([0-9][^ \n]*)")
           set(SPHINX_VERSION "${CMAKE_MATCH_1}")
           set(HAVE_SPHINX 1)
           message(STATUS "Found Sphinx ${SPHINX_VERSION}: ${SPHINX_BUILD}")

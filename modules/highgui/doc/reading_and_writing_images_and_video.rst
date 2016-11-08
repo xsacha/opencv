@@ -154,13 +154,14 @@ It is possible to store PNG images with an alpha channel using this function. To
 
     void createAlphaMat(Mat &mat)
     {
+        CV_Assert(mat.channels() == 4);
         for (int i = 0; i < mat.rows; ++i) {
             for (int j = 0; j < mat.cols; ++j) {
-                Vec4b& rgba = mat.at<Vec4b>(i, j);
-                rgba[0] = UCHAR_MAX;
-                rgba[1] = saturate_cast<uchar>((float (mat.cols - j)) / ((float)mat.cols) * UCHAR_MAX);
-                rgba[2] = saturate_cast<uchar>((float (mat.rows - i)) / ((float)mat.rows) * UCHAR_MAX);
-                rgba[3] = saturate_cast<uchar>(0.5 * (rgba[1] + rgba[2]));
+                Vec4b& bgra = mat.at<Vec4b>(i, j);
+                bgra[0] = UCHAR_MAX; // Blue
+                bgra[1] = saturate_cast<uchar>((float (mat.cols - j)) / ((float)mat.cols) * UCHAR_MAX); // Green
+                bgra[2] = saturate_cast<uchar>((float (mat.rows - i)) / ((float)mat.rows) * UCHAR_MAX); // Red
+                bgra[3] = saturate_cast<uchar>(0.5 * (bgra[1] + bgra[2])); // Alpha
             }
         }
     }
@@ -192,8 +193,8 @@ VideoCapture
 ------------
 .. ocv:class:: VideoCapture
 
-Class for video capturing from video files or cameras.
-The class provides C++ API for capturing video from cameras or for reading video files. Here is how the class can be used: ::
+Class for video capturing from video files, image sequences or cameras.
+The class provides C++ API for capturing video from cameras or for reading video files and image sequences. Here is how the class can be used: ::
 
     #include "opencv2/opencv.hpp"
 
@@ -318,7 +319,7 @@ The methods/functions grab the next frame from video file or camera and return t
 
 The primary use of the function is in multi-camera environments, especially when the cameras do not have hardware synchronization. That is, you call ``VideoCapture::grab()`` for each camera and after that call the slower method ``VideoCapture::retrieve()`` to decode and get frame from each camera. This way the overhead on demosaicing or motion jpeg decompression etc. is eliminated and the retrieved frames from different cameras will be closer in time.
 
-Also, when a connected camera is multi-head (for example, a stereo camera or a Kinect device), the correct way of retrieving data from it is to call `VideoCapture::grab` first and then call :ocv:func:`VideoCapture::retrieve` one or more times with different values of the ``channel`` parameter. See https://github.com/Itseez/opencv/tree/master/samples/cpp/openni_capture.cpp
+Also, when a connected camera is multi-head (for example, a stereo camera or a Kinect device), the correct way of retrieving data from it is to call `VideoCapture::grab` first and then call :ocv:func:`VideoCapture::retrieve` one or more times with different values of the ``channel`` parameter. See https://github.com/opencv/opencv/tree/master/samples/cpp/openni_capture.cpp
 
 
 VideoCapture::retrieve

@@ -77,10 +77,10 @@ OCL_TEST_P(Canny, Accuracy)
     cv::ocl::oclMat edges;
     cv::ocl::Canny(ocl_img, edges, low_thresh, high_thresh, apperture_size, useL2gradient);
 
-    cv::Mat edges_gold;
-    cv::Canny(img, edges_gold, low_thresh, high_thresh, apperture_size, useL2gradient);
+    cv::Mat local_edges_gold;
+    cv::Canny(img, local_edges_gold, low_thresh, high_thresh, apperture_size, useL2gradient);
 
-    EXPECT_MAT_SIMILAR(edges_gold, edges, 1e-2);
+    EXPECT_MAT_SIMILAR(local_edges_gold, edges, 1e-2);
 }
 
 INSTANTIATE_TEST_CASE_P(OCL_ImgProc, Canny, testing::Combine(
