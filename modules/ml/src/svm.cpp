@@ -1880,7 +1880,7 @@ bool CvSVM::train_auto( const CvMat* _train_data, const CvMat* _responses,
         qsort(ratios, k_fold, sizeof(ratios[0]), icvCmpIndexedratio);
         double old_dist = 0.0;
         for (int k=0; k<k_fold; ++k)
-            old_dist += abs(ratios[k].val-class_ratio);
+            old_dist += std::abs(ratios[k].val-class_ratio);
         double new_dist = 1.0;
         // iterate to make the folds more balanced
         while (new_dist > 0.0)
@@ -1897,7 +1897,7 @@ bool CvSVM::train_auto( const CvMat* _train_data, const CvMat* _responses,
             qsort(ratios, k_fold, sizeof(ratios[0]), icvCmpIndexedratio);
             new_dist = 0.0;
             for (int k=0; k<k_fold; ++k)
-                new_dist += abs(ratios[k].val-class_ratio);
+                new_dist += std::abs(ratios[k].val-class_ratio);
             if (new_dist < old_dist)
             {
                 // swapping really improves, so swap the samples
@@ -2315,7 +2315,12 @@ void CvSVM::write( CvFileStorage* fs, const char* name ) const
                       params.svm_type == CvSVM::ONE_CLASS ? 1 : 0;
     const CvSVMDecisionFunc* df = decision_func;
     if( !isSvmModelApplicable(sv_total, var_all, var_count, class_count) )
+    {
+        cvReleaseFileStorage( &fs );
+        fs = NULL;
+
         CV_ERROR( CV_StsParseError, "SVM model data is invalid, check sv_count, var_* and class_count tags" );
+    }
 
     cvStartWriteStruct( fs, name, CV_NODE_MAP, CV_TYPE_NAME_ML_SVM );
 

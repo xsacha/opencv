@@ -1,6 +1,3 @@
-/*! \file core.hpp
-    \brief The Core Functionality
- */
 /*M///////////////////////////////////////////////////////////////////////////////////////
 //
 //  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
@@ -2596,6 +2593,9 @@ CV_EXPORTS_W double kmeans( InputArray data, int K, CV_OUT InputOutputArray best
 //! returns the thread-local Random number generator
 CV_EXPORTS RNG& theRNG();
 
+//! sets state of the thread-local Random number generator
+CV_EXPORTS_W void setRNGSeed(int seed);
+
 //! returns the next unifomly-distributed random number of the specified type
 template<typename _Tp> static inline _Tp randu() { return (_Tp)theRNG(); }
 
@@ -2641,6 +2641,44 @@ CV_EXPORTS_W void ellipse(CV_IN_OUT Mat& img, Point center, Size axes,
 //! draws a rotated ellipse in the image
 CV_EXPORTS_W void ellipse(CV_IN_OUT Mat& img, const RotatedRect& box, const Scalar& color,
                         int thickness=1, int lineType=8);
+
+/* ----------------------------------------------------------------------------------------- */
+/* ADDING A SET OF PREDEFINED MARKERS WHICH COULD BE USED TO HIGHLIGHT POSITIONS IN AN IMAGE */
+/* ----------------------------------------------------------------------------------------- */
+
+//! Possible set of marker types used for the drawMarker function
+enum MarkerTypes
+{
+    MARKER_CROSS = 0,           // A crosshair marker shape
+    MARKER_TILTED_CROSS = 1,    // A 45 degree tilted crosshair marker shape
+    MARKER_STAR = 2,            // A star marker shape, combination of cross and tilted cross
+    MARKER_DIAMOND = 3,         // A diamond marker shape
+    MARKER_SQUARE = 4,          // A square marker shape
+    MARKER_TRIANGLE_UP = 5,     // An upwards pointing triangle marker shape
+    MARKER_TRIANGLE_DOWN = 6    // A downwards pointing triangle marker shape
+};
+
+/** @brief Draws a marker on a predefined position in an image.
+
+The function drawMarker draws a marker on a given position in the image. For the moment several
+marker types are supported (`MARKER_CROSS`, `MARKER_TILTED_CROSS`, `MARKER_STAR`, `MARKER_DIAMOND`, `MARKER_SQUARE`,
+`MARKER_TRIANGLE_UP` and `MARKER_TRIANGLE_DOWN`).
+
+@param img Image.
+@param position The point where the crosshair is positioned.
+@param markerType The specific type of marker you want to use, see
+@param color Line color.
+@param thickness Line thickness.
+@param line_type Type of the line, see cv::LineTypes
+@param markerSize The length of the marker axis [default = 20 pixels]
+ */
+CV_EXPORTS_W void drawMarker(CV_IN_OUT Mat& img, Point position, const Scalar& color,
+                             int markerType = MARKER_CROSS, int markerSize=20, int thickness=1,
+                             int line_type=8);
+
+/* ----------------------------------------------------------------------------------------- */
+/* END OF MARKER SECTION */
+/* ----------------------------------------------------------------------------------------- */
 
 //! draws a filled convex polygon in the image
 CV_EXPORTS void fillConvexPoly(Mat& img, const Point* pts, int npts,

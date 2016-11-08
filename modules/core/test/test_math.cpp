@@ -2329,6 +2329,17 @@ void Core_SolvePolyTest::run( int )
             pass = pass && div < err_eps;
         }
 
+        //test bug #5623 - solves equation x^3 = 0
+        cv::Mat coeffs_5623(4, 1, CV_64FC1);
+        cv::Mat r_5623(3, 1, CV_64FC2);
+        coeffs_5623.at<double>(0) = 1;
+        coeffs_5623.at<double>(1) = 0;
+        coeffs_5623.at<double>(2) = 0;
+        coeffs_5623.at<double>(3) = 0;
+        double prec_5623 = cv::solveCubic(coeffs_5623, r_5623);
+        pass = pass && r_5623.at<double>(0) == 0 && r_5623.at<double>(1) == 0 && r_5623.at<double>(2) == 0;
+        pass = pass && prec_5623 == 1;
+
         if (!pass)
         {
             ts->set_failed_test_info(cvtest::TS::FAIL_INVALID_OUTPUT);
@@ -2345,6 +2356,55 @@ void Core_SolvePolyTest::run( int )
                 ts->printf( cvtest::TS::LOG, "ar[%d]=(%g, %g)\n", j, ar[j].real(), ar[j].imag());
             break;
         }
+    }
+}
+
+template<typename T>
+static void checkRoot(Mat& r, T re, T im)
+{
+    for (int i = 0; i < r.cols*r.rows; i++)
+    {
+        Vec<T, 2> v = *(Vec<T, 2>*)r.ptr(i);
+        if (fabs(re - v[0]) < 1e-6 && fabs(im - v[1]) < 1e-6)
+        {
+            v[0] = std::numeric_limits<T>::quiet_NaN();
+            v[1] = std::numeric_limits<T>::quiet_NaN();
+            return;
+        }
+    }
+    GTEST_NONFATAL_FAILURE_("Can't find root") << "(" << re << ", " << im << ")";
+}
+TEST(Core_SolvePoly, regression_5599)
+{
+    // x^4 - x^2 = 0, roots: 1, -1, 0, 0
+    cv::Mat coefs = (cv::Mat_<float>(1,5) << 0, 0, -1, 0, 1 );
+    {
+        cv::Mat r;
+        double prec;
+        prec = cv::solvePoly(coefs, r);
+        EXPECT_LE(prec, 1e-6);
+        EXPECT_EQ(4u, r.total());
+        //std::cout << "Preciseness = " << prec << std::endl;
+        //std::cout << "roots:\n" << r << "\n" << std::endl;
+        ASSERT_EQ(CV_32FC2, r.type());
+        checkRoot<float>(r, 1, 0);
+        checkRoot<float>(r, -1, 0);
+        checkRoot<float>(r, 0, 0);
+        checkRoot<float>(r, 0, 0);
+    }
+    // x^2 - 2x + 1 = 0,  roots: 1, 1
+    coefs = (cv::Mat_<float>(1,3) << 1, -2, 1 );
+    {
+        cv::Mat r;
+        double prec;
+        prec = cv::solvePoly(coefs, r);
+        EXPECT_LE(prec, 1e-6);
+        EXPECT_EQ(2u, r.total());
+        //std::cout << "Preciseness = " << prec << std::endl;
+        //std::cout << "roots:\n" << r << "\n" << std::endl;
+        ASSERT_EQ(CV_32FC2, r.type());
+        checkRoot<float>(r, 1, 0);
+        checkRoot<float>(r, 1, 0);
     }
 }
 

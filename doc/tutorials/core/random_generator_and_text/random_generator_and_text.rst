@@ -22,7 +22,7 @@ Code
 
    * In this tutorial, we intend to use *random* values for the drawing parameters. Also, we intend to populate our image with a big number of geometric figures. Since we will be initializing them in a random fashion, this process will be automatic and made by using *loops* .
 
-   * This code is in your OpenCV sample folder. Otherwise you can grab it from `here <http://code.opencv.org/projects/opencv/repository/revisions/master/raw/samples/cpp/tutorial_code/core/Matrix/Drawing_2.cpp>`_ .
+   * This code is in your OpenCV sample folder. Otherwise you can grab it from `here <https://github.com/opencv/opencv/blob/2.4/samples/cpp/tutorial_code/core/Matrix/Drawing_2.cpp>`_ .
 
 Explanation
 ============
@@ -116,7 +116,7 @@ Explanation
         pt1.x = rng.uniform( x_1, x_2 );
         pt1.y = rng.uniform( y_1, y_2 );
 
-     * We know that **rng** is a *Random number generator* object. In the code above we are calling **rng.uniform(a,b)**. This generates a radombly uniformed distribution between the values **a** and **b** (inclusive in **a**, exclusive in **b**).
+     * We know that **rng** is a *Random number generator* object. In the code above we are calling **rng.uniform(a,b)**. This generates a randomly uniformed distribution between the values **a** and **b** (inclusive in **a**, exclusive in **b**).
 
      * From the explanation above, we deduce that the extremes *pt1* and *pt2* will be random values, so the lines positions will be quite impredictable, giving a nice visual effect (check out the Result section below).
 
@@ -138,7 +138,7 @@ Explanation
 
        As we can see, the return value is an *Scalar* with 3 randomly initialized values, which are used as the *R*, *G* and *B* parameters for the line color. Hence, the color of the lines will be random too!
 
-#. The explanation above applies for the other functions generating circles, ellipses, polygones, etc. The parameters such as *center* and *vertices* are also generated randomly.
+#. The explanation above applies for the other functions generating circles, ellipses, polygons, etc. The parameters such as *center* and *vertices* are also generated randomly.
 
 #. Before finishing, we also should take a look at the functions *Display_Random_Text* and *Displaying_Big_End*, since they both have a few interesting features:
 

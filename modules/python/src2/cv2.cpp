@@ -1,6 +1,6 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1800)
 // eliminating duplicated round() declaration
-#define HAVE_ROUND
+#define HAVE_ROUND 1
 #endif
 
 #include <Python.h>
@@ -233,7 +233,12 @@ static int pyopencv_to(const PyObject* o, Mat& m, const ArgInfo info, bool allow
 
     if( PyInt_Check(o) )
     {
-        double v[] = {PyInt_AsLong((PyObject*)o), 0., 0., 0.};
+        double v[] = {
+            static_cast<double>(PyInt_AsLong((PyObject*)o)),
+            0.,
+            0.,
+            0.,
+        };
         m = Mat(4, 1, CV_64F, v).clone();
         return true;
     }

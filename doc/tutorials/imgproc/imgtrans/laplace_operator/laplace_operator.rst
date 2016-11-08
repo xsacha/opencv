@@ -55,7 +55,7 @@ Code
    * Applies a Laplacian operator to the grayscale image and stores the output image
    * Display the result in a window
 
-#. The tutorial code's is shown lines below. You can also download it from `here <https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/ImgTrans/Laplace_Demo.cpp>`_
+#. The tutorial code's is shown lines below. You can also download it from `here <https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/ImgTrans/Laplace_Demo.cpp>`_
 
 .. code-block:: cpp
 
@@ -88,7 +88,7 @@ Code
      GaussianBlur( src, src, Size(3,3), 0, 0, BORDER_DEFAULT );
 
      /// Convert the image to grayscale
-     cvtColor( src, src_gray, CV_RGB2GRAY );
+     cvtColor( src, src_gray, CV_BGR2GRAY );
 
      /// Create window
      namedWindow( window_name, CV_WINDOW_AUTOSIZE );
@@ -141,7 +141,7 @@ Explanation
 
    .. code-block:: cpp
 
-      cvtColor( src, src_gray, CV_RGB2GRAY );
+      cvtColor( src, src_gray, CV_BGR2GRAY );
 
 #. Apply the Laplacian operator to the grayscale image:
 

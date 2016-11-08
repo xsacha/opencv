@@ -63,6 +63,10 @@ if(OPENCV_CAN_BREAK_BINARY_COMPATIBILITY)
   add_definitions(-DOPENCV_CAN_BREAK_BINARY_COMPATIBILITY)
 endif()
 
+if(BUILD_TINY_GPU_MODULE)
+  add_definitions(-DOPENCV_TINY_GPU_MODULE)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX)
   # High level of warnings.
   add_extra_compiler_option(-W)
@@ -91,6 +95,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_extra_compiler_option(-Wno-narrowing)
     add_extra_compiler_option(-Wno-delete-non-virtual-dtor)
     add_extra_compiler_option(-Wno-unnamed-type-template-args)
+    add_extra_compiler_option(-Wno-array-bounds)
+    add_extra_compiler_option(-Wno-aggressive-loop-optimizations)
   endif()
   add_extra_compiler_option(-fdiagnostics-show-option)
 
@@ -257,6 +263,11 @@ if(MSVC)
   endif()
 endif()
 
+if(MSVC12 AND NOT CMAKE_GENERATOR MATCHES "Visual Studio")
+  set(OPENCV_EXTRA_C_FLAGS "${OPENCV_EXTRA_C_FLAGS} /FS")
+  set(OPENCV_EXTRA_CXX_FLAGS "${OPENCV_EXTRA_CXX_FLAGS} /FS")
+endif()
+
 # Extra link libs if the user selects building static libs:
 if(NOT BUILD_SHARED_LIBS AND ((CMAKE_COMPILER_IS_GNUCXX AND NOT ANDROID) OR QNX))
   # Android does not need these settings because they are already set by toolchain file
@@ -309,5 +320,8 @@ if(MSVC)
 
   if(NOT ENABLE_NOISY_WARNINGS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251") #class 'std::XXX' needs to have dll-interface to be used by clients of YYY
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4275") # non dll-interface class 'std::exception' used as base for dll-interface class 'cv::Exception'
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4589") # Constructor of abstract class ... ignores initializer for virtual base class 'cv::Algorithm'
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4359") # Alignment specifier is less than actual alignment (4), and will be ignored
   endif()
 endif()
