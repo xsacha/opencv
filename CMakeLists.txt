@@ -131,8 +131,8 @@ enable_testing()
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.10.4.tar.gz"
-    SHA1 "603c2b5f10c5b6e50628cd0b0cc5c1167cb36bfc"
+    URL "https://github.com/ruslo/hunter/archive/v0.16.24.tar.gz"
+    SHA1 "00ab627d3d4fe5151e15b6ab2b1b1da17650984a"
 )
 
 project(OpenCV CXX C)
