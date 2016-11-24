@@ -41,8 +41,8 @@
 //
 //M*/
 
-#ifndef __OPENCV_CORE_TYPES_H__
-#define __OPENCV_CORE_TYPES_H__
+#ifndef OPENCV_CORE_TYPES_H
+#define OPENCV_CORE_TYPES_H
 
 #ifdef HAVE_IPL
 #  ifndef __IPL_H__
@@ -112,22 +112,6 @@ CvSeq* sometimes. The particular array type is determined at runtime by analyzin
 bytes of the header. In C++ interface the role of CvArr is played by InputArray and OutputArray.
  */
 typedef void CvArr;
-
-typedef union Cv32suf
-{
-    int i;
-    unsigned u;
-    float f;
-}
-Cv32suf;
-
-typedef union Cv64suf
-{
-    int64 i;
-    uint64 u;
-    double f;
-}
-Cv64suf;
 
 typedef int CVStatus;
 
@@ -1685,6 +1669,9 @@ typedef struct CvFileStorage CvFileStorage;
 #define CV_STORAGE_FORMAT_AUTO   0
 #define CV_STORAGE_FORMAT_XML    8
 #define CV_STORAGE_FORMAT_YAML  16
+#define CV_STORAGE_FORMAT_JSON  24
+#define CV_STORAGE_BASE64       64
+#define CV_STORAGE_WRITE_BASE64  (CV_STORAGE_BASE64 | CV_STORAGE_WRITE)
 
 /** @brief List of attributes. :
 
@@ -1845,6 +1832,6 @@ CvModuleInfo;
 
 /** @} */
 
-#endif /*__OPENCV_CORE_TYPES_H__*/
+#endif /*OPENCV_CORE_TYPES_H*/
 
 /* End of file. */

@@ -16,7 +16,7 @@ For Release:  OpenCV-Linux Beta4  opencv-0.9.6
 Tested On:    LMLBT44 with 8 video inputs
 Problems?     Post your questions at answers.opencv.org,
               Report bugs at code.opencv.org,
-              Submit your fixes at https://github.com/Itseez/opencv/
+              Submit your fixes at https://github.com/opencv/opencv/
 Patched Comments:
 
 TW: The cv cam utils that came with the initial release of OpenCV for LINUX Beta4
@@ -102,7 +102,7 @@ I modified the following:
     autosetup_capture_mode_v4l2 -> autodetect capture modes for v4l2
   - Modifications are according with Video4Linux old codes
   - Video4Linux handling is automatically if it does not recognize a Video4Linux2 device
-  - Tested succesful with Logitech Quickcam Express (V4L), Creative Vista (V4L) and Genius VideoCam Notebook (V4L2)
+  - Tested successfully with Logitech Quickcam Express (V4L), Creative Vista (V4L) and Genius VideoCam Notebook (V4L2)
   - Correct source lines with compiler warning messages
   - Information message from v4l/v4l2 detection
 
@@ -113,7 +113,7 @@ I modified the following:
   - SN9C10x chip based webcams support
   - New methods are internal:
     bayer2rgb24, sonix_decompress -> decoder routines for SN9C10x decoding from Takafumi Mizuno <taka-qce@ls-a.jp> with his pleasure :)
-  - Tested succesful with Genius VideoCam Notebook (V4L2)
+  - Tested successfully with Genius VideoCam Notebook (V4L2)
 
 Sixth Patch: Sept 10, 2005 Csaba Kertesz sign@freemail.hu
 For Release:  OpenCV-Linux Beta5 OpenCV-0.9.7
@@ -123,7 +123,7 @@ I added the following:
   - Get and change V4L capture controls (hue, saturation, brightness, contrast)
   - New method is internal:
     icvSetControl -> set capture controls
-  - Tested succesful with Creative Vista (V4L)
+  - Tested successfully with Creative Vista (V4L)
 
 Seventh Patch: Sept 10, 2005 Csaba Kertesz sign@freemail.hu
 For Release:  OpenCV-Linux Beta5 OpenCV-0.9.7
@@ -132,7 +132,7 @@ I added the following:
   - Detect, get and change V4L2 capture controls (hue, saturation, brightness, contrast, gain)
   - New methods are internal:
     v4l2_scan_controls_enumerate_menu, v4l2_scan_controls -> detect capture control intervals
-  - Tested succesful with Genius VideoCam Notebook (V4L2)
+  - Tested successfully with Genius VideoCam Notebook (V4L2)
 
 8th patch: Jan 5, 2006, Olivier.Bornet@idiap.ch
 Add support of V4L2_PIX_FMT_YUYV and V4L2_PIX_FMT_MJPEG.
@@ -190,6 +190,10 @@ make & enjoy!
     - PlayStation 3 Eye
     - Logitech C920
     - Odroid USB-CAM 720P
+
+17th patch: May 9, 2015, Matt Sandler
+ added supported for CV_CAP_PROP_POS_MSEC, CV_CAP_PROP_POS_FRAMES, CV_CAP_PROP_FPS
+
 */
 
 /*M///////////////////////////////////////////////////////////////////////////////////////
@@ -333,6 +337,11 @@ typedef struct CvCaptureCAM_V4L
    enum v4l2_buf_type type;
    struct v4l2_queryctrl queryctrl;
 
+   struct timeval timestamp;
+
+   /** value set the buffer of V4L*/
+   int sequence;
+
    /* V4L2 control variables */
    v4l2_ctrl_range** v4l2_ctrl_ranges;
    int v4l2_ctrl_count;
@@ -341,6 +350,7 @@ typedef struct CvCaptureCAM_V4L
 }
 CvCaptureCAM_V4L;
 
+static CvCaptureCAM_V4L * icvCaptureFromCAM_V4L (const char* deviceName);
 static void icvCloseCAM_V4L( CvCaptureCAM_V4L* capture );
 
 static int icvGrabFrameCAM_V4L( CvCaptureCAM_V4L* capture );
@@ -407,7 +417,7 @@ static void icvInitCapture_V4L() {
 }; /* End icvInitCapture_V4L */
 
 
-static int try_init_v4l(CvCaptureCAM_V4L* capture, char *deviceName)
+static int try_init_v4l(CvCaptureCAM_V4L* capture, const char *deviceName)
 
 {
 
@@ -451,7 +461,7 @@ static int try_init_v4l(CvCaptureCAM_V4L* capture, char *deviceName)
 }
 
 
-static int try_init_v4l2(CvCaptureCAM_V4L* capture, char *deviceName)
+static int try_init_v4l2(CvCaptureCAM_V4L* capture, const char *deviceName)
 {
 
   // if detect = -1 then unable to open device
@@ -653,7 +663,7 @@ static inline int channels_for_mode(int mode)
     }
 }
 
-static int _capture_V4L2 (CvCaptureCAM_V4L *capture, char *deviceName)
+static int _capture_V4L2 (CvCaptureCAM_V4L *capture, const char *deviceName)
 {
    int detect_v4l2 = 0;
 
@@ -861,7 +871,7 @@ static int _capture_V4L2 (CvCaptureCAM_V4L *capture, char *deviceName)
 }; /* End _capture_V4L2 */
 
 
-static int _capture_V4L (CvCaptureCAM_V4L *capture, char *deviceName)
+static int _capture_V4L (CvCaptureCAM_V4L *capture, const char *deviceName)
 {
    int detect_v4l = 0;
 
@@ -1032,17 +1042,6 @@ static CvCaptureCAM_V4L * icvCaptureFromCAM_V4L (int index)
      fprintf( stderr, "VIDEOIO ERROR: V4L: index %d is not correct!\n",index);
      return NULL; /* Did someone ask for not correct video source number? */
    }
-   /* Allocate memory for this humongus CvCaptureCAM_V4L structure that contains ALL
-      the handles for V4L processing */
-   CvCaptureCAM_V4L * capture = (CvCaptureCAM_V4L*)cvAlloc(sizeof(CvCaptureCAM_V4L));
-   if (!capture) {
-      fprintf( stderr, "VIDEOIO ERROR: V4L: Could not allocate memory for capture process.\n");
-      return NULL;
-   }
-
-#ifdef USE_TEMP_BUFFER
-   capture->buffers[MAX_V4L_BUFFERS].start = NULL;
-#endif
 
    /* Select camera, or rather, V4L video source */
    if (index<0) { // Asking for the first device available
@@ -1056,9 +1055,26 @@ static CvCaptureCAM_V4L * icvCaptureFromCAM_V4L (int index)
    }
    /* Print the CameraNumber at the end of the string with a width of one character */
    sprintf(deviceName, "/dev/video%1d", index);
+   return icvCaptureFromCAM_V4L(deviceName);
+}
+
+static CvCaptureCAM_V4L * icvCaptureFromCAM_V4L (const char* deviceName)
+{
+   /* Allocate memory for this humongus CvCaptureCAM_V4L structure that contains ALL
+      the handles for V4L processing */
+   CvCaptureCAM_V4L * capture = (CvCaptureCAM_V4L*)cvAlloc(sizeof(CvCaptureCAM_V4L));
+   if (!capture) {
+      fprintf( stderr, "VIDEOIO ERROR: V4L: Could not allocate memory for capture process.\n");
+      return NULL;
+   }
+
+#ifdef USE_TEMP_BUFFER
+   capture->buffers[MAX_V4L_BUFFERS].start = NULL;
+#endif
 
    /* w/o memset some parts  arent initialized - AKA: Fill it with zeros so it is clean */
    memset(capture,0,sizeof(CvCaptureCAM_V4L));
+
    /* Present the routines needed for V4L funtionality.  They are inserted as part of
       the standard set of cv calls promoting transparency.  "Vector Table" insertion. */
    capture->FirstCapture = 1;
@@ -1104,7 +1120,7 @@ static int read_frame_v4l2(CvCaptureCAM_V4L* capture) {
         default:
             /* display the error and stop processing */
             perror ("VIDIOC_DQBUF");
-            return 1;
+            return -1;
         }
    }
 
@@ -1124,10 +1140,15 @@ static int read_frame_v4l2(CvCaptureCAM_V4L* capture) {
    if (-1 == xioctl (capture->deviceHandle, VIDIOC_QBUF, &buf))
        perror ("VIDIOC_QBUF");
 
+   //set timestamp in capture struct to be timestamp of most recent frame
+   /** where timestamps refer to the instant the field or frame was received by the driver, not the capture time*/
+   capture->timestamp = buf.timestamp;   //printf( "timestamp update done \n");
+   capture->sequence = buf.sequence;
+
    return 1;
 }
 
-static void mainloop_v4l2(CvCaptureCAM_V4L* capture) {
+static int mainloop_v4l2(CvCaptureCAM_V4L* capture) {
     unsigned int count;
 
     count = 1;
@@ -1161,10 +1182,14 @@ static void mainloop_v4l2(CvCaptureCAM_V4L* capture) {
                 break;
             }
 
-            if (read_frame_v4l2 (capture))
-                break;
+            int returnCode=read_frame_v4l2(capture);
+            if (returnCode == -1)
+                return -1;
+            if (returnCode == 1)
+                return 0;
         }
     }
+    return 0;
 }
 
 static int icvGrabFrameCAM_V4L(CvCaptureCAM_V4L* capture) {
@@ -1232,21 +1257,21 @@ static int icvGrabFrameCAM_V4L(CvCaptureCAM_V4L* capture) {
    if (capture->is_v4l2_device == 1)
    {
 
-     mainloop_v4l2(capture);
+     if(mainloop_v4l2(capture) == -1) return 0;
 
    } else
    {
 
-     capture->mmaps[capture->bufferIndex].frame  = capture->bufferIndex;
-     capture->mmaps[capture->bufferIndex].width  = capture->captureWindow.width;
-     capture->mmaps[capture->bufferIndex].height = capture->captureWindow.height;
-     capture->mmaps[capture->bufferIndex].format = capture->imageProperties.palette;
+   capture->mmaps[capture->bufferIndex].frame  = capture->bufferIndex;
+   capture->mmaps[capture->bufferIndex].width  = capture->captureWindow.width;
+   capture->mmaps[capture->bufferIndex].height = capture->captureWindow.height;
+   capture->mmaps[capture->bufferIndex].format = capture->imageProperties.palette;
 
-     if (v4l1_ioctl (capture->deviceHandle, VIDIOCMCAPTURE,
-    &capture->mmaps[capture->bufferIndex]) == -1) {
-   /* capture is on the way, so just exit */
-   return 1;
-     }
+   if (v4l1_ioctl (capture->deviceHandle, VIDIOCMCAPTURE,
+           &capture->mmaps[capture->bufferIndex]) == -1) {
+      /* capture is on the way, so just exit */
+      return 1;
+   }
 
      ++capture->bufferIndex;
      if (capture->bufferIndex == capture->memoryBuffer.frames) {
@@ -1338,6 +1363,29 @@ static IplImage* icvRetrieveFrameCAM_V4L( CvCaptureCAM_V4L* capture, int) {
    return(&capture->frame);
 }
 
+static int zeroPropertyQuietly(CvCaptureCAM_V4L* capture, int property_id, int value)
+{
+  struct v4l2_control c;
+  int v4l2_min;
+  int v4l2_max;
+  //we need to make sure that the autocontrol is switch off, if available.
+  capture->control.id = property_id;
+  v4l2_min = v4l2_get_ctrl_min(capture, capture->control.id);
+  v4l2_max = v4l2_get_ctrl_max(capture, capture->control.id);
+  if ( !((v4l2_min == -1) && (v4l2_max == -1)) ) {
+    //autocontrol capability is supported, switch it off.
+    c.id    = capture->control.id;
+    c.value = value;
+    if( v4l2_ioctl(capture->deviceHandle, VIDIOC_S_CTRL, &c) != 0 ){
+      if (errno != ERANGE) {
+        fprintf(stderr, "VIDEOIO ERROR: V4L2: Failed to set autocontrol \"%d\": %s (value %d)\n", c.id, strerror(errno), c.value);
+        return -1;
+      }
+    }
+  }//lack of support should not be considerred an error.
+  return 0;
+}
+
 /* TODO: review this adaptation */
 static double icvGetPropertyCAM_V4L (CvCaptureCAM_V4L* capture,
                                      int property_id ) {
@@ -1362,6 +1410,36 @@ static double icvGetPropertyCAM_V4L (CvCaptureCAM_V4L* capture,
         }
       }
       return (property_id == CV_CAP_PROP_FRAME_WIDTH)?capture->form.fmt.pix.width:capture->form.fmt.pix.height;
+
+    case CV_CAP_PROP_POS_MSEC:
+        if (capture->FirstCapture) {
+            return 0;
+        } else {
+            //would be maximally numerically stable to cast to convert as bits, but would also be counterintuitive to decode
+            return 1000 * capture->timestamp.tv_sec + ((double) capture->timestamp.tv_usec) / 1000;
+        }
+        break;
+
+    case CV_CAP_PROP_POS_FRAMES:
+        return capture->sequence;
+        break;
+
+    case CV_CAP_PROP_FPS: {
+        struct v4l2_streamparm sp;
+        memset (&sp, 0, sizeof(struct v4l2_streamparm));
+        sp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        if (xioctl (capture->deviceHandle, VIDIOC_G_PARM, &sp) < 0){
+            fprintf(stderr, "VIDEOIO ERROR: V4L: Unable to get camera FPS\n");
+            return (double) -1;
+        }
+
+        // this is the captureable, not per say what you'll get..
+        double framesPerSec = sp.parm.capture.timeperframe.denominator / (double)  sp.parm.capture.timeperframe.numerator ;
+        return framesPerSec;
+    }
+    break;
+
+
     case CV_CAP_PROP_MODE:
       return capture->mode;
       break;
@@ -1387,8 +1465,15 @@ static double icvGetPropertyCAM_V4L (CvCaptureCAM_V4L* capture,
       break;
     case CV_CAP_PROP_EXPOSURE:
       sprintf(name, "Exposure");
-      capture->control.id = V4L2_CID_EXPOSURE;
+      capture->control.id = V4L2_CID_EXPOSURE_ABSOLUTE;
       break;
+    case CV_CAP_PROP_FOCUS:
+      sprintf(name, "Focus");
+      capture->control.id = V4L2_CID_FOCUS_ABSOLUTE;
+      break;
+    case CV_CAP_PROP_AUTOFOCUS:
+      sprintf(name, "Autofocus");
+      capture->control.id = V4L2_CID_FOCUS_AUTO;
     default:
       sprintf(name, "<unknown property string>");
       capture->control.id = property_id;
@@ -1507,12 +1592,16 @@ static int icvSetVideoSize( CvCaptureCAM_V4L* capture, int w, int h) {
     xioctl (capture->deviceHandle, VIDIOC_S_FMT, &capture->form);
 
     /* try to set framerate to 30 fps */
+
     struct v4l2_streamparm setfps;
     memset (&setfps, 0, sizeof(struct v4l2_streamparm));
+
     setfps.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     setfps.parm.capture.timeperframe.numerator = 1;
     setfps.parm.capture.timeperframe.denominator = 30;
+
     xioctl (capture->deviceHandle, VIDIOC_S_PARM, &setfps);
+
 
     /* we need to re-initialize some things, like buffers, because the size has
      * changed */
@@ -1599,9 +1688,22 @@ static int icvSetControl (CvCaptureCAM_V4L* capture, int property_id, double val
       capture->control.id = V4L2_CID_GAIN;
       break;
     case CV_CAP_PROP_EXPOSURE:
+      //we need to make sure that the autoexposure is switch off, if available.
+      zeroPropertyQuietly(capture, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
+      //now get the manual exposure value
       sprintf(name, "Exposure");
-      capture->control.id = V4L2_CID_EXPOSURE;
+      capture->control.id = V4L2_CID_EXPOSURE_ABSOLUTE;
       break;
+    case CV_CAP_PROP_FOCUS:
+      //we need to make sure that the autofocus is switch off, if available.
+      zeroPropertyQuietly(capture, V4L2_CID_FOCUS_AUTO, 0 /*off*/);
+      //now set the manual focus
+      sprintf(name, "Focus");
+      capture->control.id = V4L2_CID_FOCUS_ABSOLUTE;
+      break;
+    case CV_CAP_PROP_AUTOFOCUS:
+      sprintf(name, "Autofocus");
+      capture->control.id = V4L2_CID_FOCUS_AUTO;
     default:
       sprintf(name, "<unknown property string>");
       capture->control.id = property_id;
@@ -1812,6 +1914,7 @@ public:
     virtual ~CvCaptureCAM_V4L_CPP() { close(); }
 
     virtual bool open( int index );
+    virtual bool open( const char* deviceName );
     virtual void close();
 
     virtual double getProperty(int) const;
@@ -1827,6 +1930,13 @@ bool CvCaptureCAM_V4L_CPP::open( int index )
 {
     close();
     captureV4L = icvCaptureFromCAM_V4L(index);
+    return captureV4L != 0;
+}
+
+bool CvCaptureCAM_V4L_CPP::open( const char* deviceName )
+{
+    close();
+    captureV4L = icvCaptureFromCAM_V4L(deviceName);
     return captureV4L != 0;
 }
 
@@ -1864,6 +1974,17 @@ CvCapture* cvCreateCameraCapture_V4L( int index )
     CvCaptureCAM_V4L_CPP* capture = new CvCaptureCAM_V4L_CPP;
 
     if( capture->open( index ))
+        return (CvCapture*)capture;
+
+    delete capture;
+    return 0;
+}
+
+CvCapture* cvCreateCameraCapture_V4L( const char * deviceName )
+{
+    CvCaptureCAM_V4L_CPP* capture = new CvCaptureCAM_V4L_CPP;
+
+    if( capture->open( deviceName ))
         return (CvCapture*)capture;
 
     delete capture;

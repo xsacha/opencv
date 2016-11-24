@@ -80,6 +80,7 @@
    4. HAVE_GCD         - system wide, used automatically        (APPLE only)
    5. WINRT            - system wide, used automatically        (Windows RT only)
    6. HAVE_CONCURRENCY - part of runtime, used automatically    (Windows only - MSVS 10, MSVS 11)
+   7. HAVE_PTHREADS_PF - pthreads if available
 */
 
 #if defined HAVE_TBB
@@ -106,7 +107,7 @@
     #elif defined HAVE_GCD
         #include <dispatch/dispatch.h>
         #include <pthread.h>
-    #elif defined WINRT
+    #elif defined WINRT && _MSC_VER < 1900
         #include <ppltasks.h>
     #elif defined HAVE_CONCURRENCY
         #include <ppl.h>
@@ -125,12 +126,20 @@
 #  define CV_PARALLEL_FRAMEWORK "winrt-concurrency"
 #elif defined HAVE_CONCURRENCY
 #  define CV_PARALLEL_FRAMEWORK "ms-concurrency"
+#elif defined HAVE_PTHREADS_PF
+#  define CV_PARALLEL_FRAMEWORK "pthreads"
 #endif
 
 namespace cv
 {
     ParallelLoopBody::~ParallelLoopBody() {}
+#ifdef HAVE_PTHREADS_PF
+    void parallel_for_pthreads(const cv::Range& range, const cv::ParallelLoopBody& body, double nstripes);
+    size_t parallel_pthreads_get_threads_num();
+    void parallel_pthreads_set_threads_num(int num);
+#endif
 }
+
 
 namespace
 {
@@ -140,13 +149,25 @@ namespace
     public:
         ParallelLoopBodyWrapper(const cv::ParallelLoopBody& _body, const cv::Range& _r, double _nstripes)
         {
+
             body = &_body;
             wholeRange = _r;
             double len = wholeRange.end - wholeRange.start;
             nstripes = cvRound(_nstripes <= 0 ? len : MIN(MAX(_nstripes, 1.), len));
+
+#ifdef ENABLE_INSTRUMENTATION
+            pThreadRoot = cv::instr::getInstrumentTLSStruct().pCurrentNode;
+#endif
         }
         void operator()(const cv::Range& sr) const
         {
+#ifdef ENABLE_INSTRUMENTATION
+            {
+                cv::instr::InstrTLSStruct *pInstrTLS = &cv::instr::getInstrumentTLSStruct();
+                pInstrTLS->pCurrentNode = pThreadRoot; // Initialize TLS node for thread
+            }
+#endif
+
             cv::Range r;
             r.start = (int)(wholeRange.start +
                             ((uint64)sr.start*(wholeRange.end - wholeRange.start) + nstripes/2)/nstripes);
@@ -160,6 +181,9 @@ namespace
         const cv::ParallelLoopBody* body;
         cv::Range wholeRange;
         int nstripes;
+#ifdef ENABLE_INSTRUMENTATION
+        cv::instr::InstrNode *pThreadRoot;
+#endif
     };
 
 #if defined HAVE_TBB
@@ -229,7 +253,7 @@ public:
     }
 
     SchedPtr() : sched_(0) {}
-    ~SchedPtr() { *this = 0; }
+    ~SchedPtr() {}
 };
 static SchedPtr pplScheduler;
 
@@ -243,6 +267,8 @@ static SchedPtr pplScheduler;
 
 void cv::parallel_for_(const cv::Range& range, const cv::ParallelLoopBody& body, double nstripes)
 {
+    CV_INSTRUMENT_REGION()
+
 #ifdef CV_PARALLEL_FRAMEWORK
 
     if(numThreads != 0)
@@ -298,6 +324,10 @@ void cv::parallel_for_(const cv::Range& range, const cv::ParallelLoopBody& body,
             Concurrency::CurrentScheduler::Detach();
         }
 
+#elif defined HAVE_PTHREADS_PF
+
+        parallel_for_pthreads(range, body, nstripes);
+
 #else
 
 #error You have hacked and compiling with unsupported parallel framework
@@ -352,6 +382,10 @@ int cv::getNumThreads(void)
     return 1 + (pplScheduler == 0
         ? Concurrency::CurrentScheduler::Get()->GetNumberOfVirtualProcessors()
         : pplScheduler->GetNumberOfVirtualProcessors());
+
+#elif defined HAVE_PTHREADS_PF
+
+        return parallel_pthreads_get_threads_num();
 
 #else
 
@@ -410,6 +444,10 @@ void cv::setNumThreads( int threads )
                        Concurrency::MaxConcurrency, threads-1));
     }
 
+#elif defined HAVE_PTHREADS_PF
+
+    parallel_pthreads_set_threads_num(threads);
+
 #endif
 }
 
@@ -432,6 +470,8 @@ int cv::getThreadNum(void)
     return 0;
 #elif defined HAVE_CONCURRENCY
     return std::max(0, (int)Concurrency::Context::VirtualProcessorId()); // zero for master thread, unique number for others but not necessary 1,2,3,...
+#elif defined HAVE_PTHREADS_PF
+    return (int)(size_t)(void*)pthread_self(); // no zero-based indexing
 #else
     return 0;
 #endif
@@ -481,7 +521,7 @@ int cv::getNumberOfCPUs(void)
 {
 #if defined WIN32 || defined _WIN32
     SYSTEM_INFO sysinfo;
-#if defined(_M_ARM) || defined(_M_X64) || defined(WINRT)
+#if (defined(_M_ARM) || defined(_M_X64) || defined(WINRT)) && _WIN32_WINNT >= 0x501
     GetNativeSystemInfo( &sysinfo );
 #else
     GetSystemInfo( &sysinfo );

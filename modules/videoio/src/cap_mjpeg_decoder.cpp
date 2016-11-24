@@ -344,7 +344,7 @@ class AviMjpegStream
 {
 public:
     AviMjpegStream();
-    //stores founded frames in m_frame_list which be accessed via getFrames
+    //stores founded frames in m_frame_list which can be accessed via getFrames
     bool parseAvi(MjpegInputStream& in_str);
     //stores founded frames in in_frame_list. getFrames() would return empty list
     bool parseAvi(MjpegInputStream& in_str, frame_list& in_frame_list);
@@ -377,7 +377,7 @@ protected:
     bool       m_is_indx_present;
 };
 
-AviMjpegStream::AviMjpegStream(): m_stream_id(0), m_movi_end(0), m_width(0), m_height(0), m_fps(0), m_is_indx_present(false)
+AviMjpegStream::AviMjpegStream(): m_stream_id(0), m_movi_start(0), m_movi_end(0), m_width(0), m_height(0), m_fps(0), m_is_indx_present(false)
 {
 }
 
@@ -554,7 +554,7 @@ bool AviMjpegStream::parseHdrlList(MjpegInputStream& in_str)
             m_is_indx_present = ((avi_hdr.dwFlags & 0x10) != 0);
             DWORD number_of_streams = avi_hdr.dwStreams;
             m_width = avi_hdr.dwWidth;
-            m_height = avi_hdr.dwWidth;
+            m_height = avi_hdr.dwHeight;
 
             //the number of strl lists must be equal to number of streams specified in main avi header
             for(DWORD i = 0; i < number_of_streams; ++i)
@@ -790,7 +790,7 @@ std::vector<char> MotionJpegCapture::readFrame(frame_iterator it)
     result.reserve(chunk.m_size);
     result.resize(chunk.m_size);
 
-    m_file_stream.read(result.data(), chunk.m_size);
+    m_file_stream.read(&(result[0]), chunk.m_size); // result.data() failed with MSVS2008
 
     return result;
 }

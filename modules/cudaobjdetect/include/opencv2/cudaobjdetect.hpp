@@ -40,8 +40,8 @@
 //
 //M*/
 
-#ifndef __OPENCV_CUDAOBJDETECT_HPP__
-#define __OPENCV_CUDAOBJDETECT_HPP__
+#ifndef OPENCV_CUDAOBJDETECT_HPP
+#define OPENCV_CUDAOBJDETECT_HPP
 
 #ifndef __cplusplus
 #  error cudaobjdetect.hpp header must be compiled as C++
@@ -73,7 +73,7 @@ namespace cv { namespace cuda {
     -   A CUDA example applying the HOG descriptor for people detection can be found at
         opencv_source_code/samples/gpu/hog.cpp
     -   (Python) An example applying the HOG descriptor for people detection can be found at
-        opencv_source_code/samples/python2/peopledetect.py
+        opencv_source_code/samples/python/peopledetect.py
  */
 class CV_EXPORTS HOG : public Algorithm
 {
@@ -285,4 +285,4 @@ public:
 
 }} // namespace cv { namespace cuda {
 
-#endif /* __OPENCV_CUDAOBJDETECT_HPP__ */
+#endif /* OPENCV_CUDAOBJDETECT_HPP */

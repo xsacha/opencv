@@ -14,18 +14,18 @@ Theory
 For the distortion OpenCV takes into account the radial and tangential factors. For the radial
 factor one uses the following formula:
 
-\f[x_{corrected} = x( 1 + k_1 r^2 + k_2 r^4 + k_3 r^6) \\
-y_{corrected} = y( 1 + k_1 r^2 + k_2 r^4 + k_3 r^6)\f]
+\f[x_{distorted} = x( 1 + k_1 r^2 + k_2 r^4 + k_3 r^6) \\
+y_{distorted} = y( 1 + k_1 r^2 + k_2 r^4 + k_3 r^6)\f]
 
-So for an old pixel point at \f$(x,y)\f$ coordinates in the input image, its position on the corrected
-output image will be \f$(x_{corrected} y_{corrected})\f$. The presence of the radial distortion
-manifests in form of the "barrel" or "fish-eye" effect.
+So for an undistorted pixel point at \f$(x,y)\f$ coordinates, its position on the distorted image
+will be \f$(x_{distorted} y_{distorted})\f$. The presence of the radial distortion manifests in form
+of the "barrel" or "fish-eye" effect.
 
 Tangential distortion occurs because the image taking lenses are not perfectly parallel to the
-imaging plane. It can be corrected via the formulas:
+imaging plane. It can be represented via the formulas:
 
-\f[x_{corrected} = x + [ 2p_1xy + p_2(r^2+2x^2)] \\
-y_{corrected} = y + [ p_1(r^2+ 2y^2)+ 2p_2xy]\f]
+\f[x_{distorted} = x + [ 2p_1xy + p_2(r^2+2x^2)] \\
+y_{distorted} = y + [ p_1(r^2+ 2y^2)+ 2p_2xy]\f]
 
 So we have five distortion parameters which in OpenCV are presented as one row matrix with 5
 columns:
@@ -77,13 +77,13 @@ Source code
 
 You may also find the source code in the `samples/cpp/tutorial_code/calib3d/camera_calibration/`
 folder of the OpenCV source library or [download it from here
-](https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/calib3d/camera_calibration/camera_calibration.cpp). The program has a
+](https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/calib3d/camera_calibration/camera_calibration.cpp). The program has a
 single argument: the name of its configuration file. If none is given then it will try to open the
 one named "default.xml". [Here's a sample configuration file
-](https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/calib3d/camera_calibration/in_VID5.xml) in XML format. In the
+](https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/calib3d/camera_calibration/in_VID5.xml) in XML format. In the
 configuration file you may choose to use camera as an input, a video file or an image list. If you
 opt for the last one, you will need to create a configuration file where you enumerate the images to
-use. Here's [an example of this ](https://github.com/Itseez/opencv/tree/master/samples/cpp/tutorial_code/calib3d/camera_calibration/VID5.xml).
+use. Here's [an example of this ](https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/calib3d/camera_calibration/VID5.xml).
 The important part to remember is that the images need to be specified using the absolute path or
 the relative one from your application's working directory. You may find all this in the samples
 directory mentioned above.
