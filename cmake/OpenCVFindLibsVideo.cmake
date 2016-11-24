@@ -124,6 +124,19 @@ if(WITH_GIGEAPI)
   endif()
 endif(WITH_GIGEAPI)
 
+# --- Aravis SDK ---
+ocv_clear_vars(HAVE_ARAVIS_API)
+if(WITH_ARAVIS)
+  find_path(ARAVIS_INCLUDE_PATH "arv.h"
+            PATHS /usr/local /var /opt /usr ENV ProgramFiles ENV ProgramW6432
+            PATH_SUFFIXES include "aravis-0.6" "aravis-0.4"
+            DOC "The path to Aravis SDK headers")
+  find_library(ARAVIS_LIBRARIES NAMES "aravis-0.6" "aravis-0.4" )
+  if(ARAVIS_LIBRARIES AND ARAVIS_INCLUDE_PATH)
+    set(HAVE_ARAVIS_API TRUE)
+  endif()
+endif(WITH_ARAVIS)
+
 # --- Dc1394 ---
 ocv_clear_vars(HAVE_DC1394 HAVE_DC1394_2)
 if(WITH_1394)
@@ -214,7 +227,7 @@ if(WITH_FFMPEG)
     CHECK_INCLUDE_FILE(libavformat/avformat.h HAVE_GENTOO_FFMPEG)
     CHECK_INCLUDE_FILE(ffmpeg/avformat.h HAVE_FFMPEG_FFMPEG)
     if(NOT HAVE_GENTOO_FFMPEG AND NOT HAVE_FFMPEG_FFMPEG)
-      if(EXISTS /usr/include/ffmpeg/libavformat/avformat.h OR HAVE_FFMPEG_SWSCALE)
+      if((NOT CMAKE_CROSSCOMPILING AND EXISTS /usr/include/ffmpeg/libavformat/avformat.h) OR HAVE_FFMPEG_SWSCALE)
         set(HAVE_GENTOO_FFMPEG TRUE)
       endif()
     endif()
@@ -224,11 +237,7 @@ if(WITH_FFMPEG)
 
     if(HAVE_FFMPEG)
       # Find the bzip2 library because it is required on some systems
-      FIND_LIBRARY(BZIP2_LIBRARIES NAMES bz2 bzip2)
-      if(NOT BZIP2_LIBRARIES)
-        # Do an other trial
-        FIND_FILE(BZIP2_LIBRARIES NAMES libbz2.so.1 PATHS /lib)
-      endif()
+      FIND_LIBRARY(BZIP2_LIBRARIES NAMES bz2 bzip2 libbz2.so.1)
     else()
       find_path(FFMPEG_INCLUDE_DIR "libavformat/avformat.h"
                 PATHS /usr/local /usr /opt
@@ -306,19 +315,18 @@ if(WIN32)
   endif()
 endif(WIN32)
 
-# --- Apple AV Foundation ---
-if(WITH_AVFOUNDATION)
-  set(HAVE_AVFOUNDATION YES)
-endif()
-
-# --- QuickTime ---
-if (NOT IOS)
-  if(WITH_QUICKTIME)
-    set(HAVE_QUICKTIME YES)
-  elseif(APPLE AND CMAKE_COMPILER_IS_CLANGCXX)
-    set(HAVE_QTKIT YES)
+if(APPLE)
+  if(WITH_AVFOUNDATION)
+    set(HAVE_AVFOUNDATION YES)
   endif()
-endif()
+  if(NOT IOS)
+    if(WITH_QUICKTIME)
+      set(HAVE_QUICKTIME YES)
+    elseif(WITH_QTKIT)
+      set(HAVE_QTKIT YES)
+    endif()
+  endif()
+endif(APPLE)
 
 # --- Intel Perceptual Computing SDK ---
 if(WITH_INTELPERC)
