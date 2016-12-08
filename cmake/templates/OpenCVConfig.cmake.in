@@ -173,6 +173,10 @@ endforeach()
 set(OpenCV_FIND_COMPONENTS ${OpenCV_FIND_COMPONENTS_})
 
 # ==============================================================
+if(TARGET opencv_world)
+  set(OpenCV_LIBS opencv_world)
+endif()
+
 # Compatibility stuff
 # ==============================================================
 set(OpenCV_LIBRARIES ${OpenCV_LIBS})
@@ -226,3 +230,54 @@ macro(ocv_list_filterout lst regex)
     endif()
   endforeach()
 endmacro()
+
+include(CMakeFindDependencyMacro)
+
+if("@ZLIB_FOUND@")
+  find_dependency(ZLIB CONFIG)
+endif()
+
+if("@TIFF_FOUND@")
+  find_dependency(TIFF CONFIG)
+endif()
+
+if("@PNG_FOUND@")
+  find_dependency(PNG CONFIG)
+endif()
+
+if("@JPEG_FOUND@")
+  find_dependency(JPEG CONFIG)
+endif()
+
+# AWP: Qt5 dependencies -- start
+if("@Qt5Core_FOUND@")
+  find_dependency(Qt5Core)
+endif()
+
+if("@Qt5Gui_FOUND@")
+  find_dependency(Qt5Gui)
+endif()
+
+if("@Qt5Widgets_FOUND@")
+  find_dependency(Qt5Widgets)
+  if(NOT "@BUILD_SHARED_LIBS@")
+    # function from Hunter's QtCMakeExtra project
+    _qt_cmake_extra_helpers_add_source(
+        opencv_highgui "static_opencv_qt_resources.cpp"
+    )
+  endif()
+endif()
+
+if("@Qt5Test_FOUND@")
+  find_dependency(Qt5Test)
+endif()
+
+if("@Qt5Concurrent_FOUND@")
+  find_dependency(Qt5Concurrent)
+endif()
+
+if("@Qt5OpenGL_FOUND@")
+  find_dependency(Qt5OpenGL)
+endif()
+# AWP: Qt5 dependencies -- end
+
