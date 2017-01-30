@@ -47,6 +47,17 @@ foreach(m ${OPENCV_MODULES_BUILD})
 endforeach()
 
 export(EXPORT OpenCVModules FILE "${CMAKE_BINARY_DIR}/OpenCVModules.cmake")
+if(ANDROID AND NOT BUILD_SHARED_LIBS AND HAVE_TBB)
+  #export TBB headers location because static linkage of TBB might be troublesome if application wants to use TBB itself
+  list(APPEND OpenCV2_INCLUDE_DIRS_CONFIGCMAKE ${TBB_INCLUDE_DIRS})
+endif()
+
+set(modules_file_suffix "")
+if(ANDROID)
+  # the REPLACE here is needed, because OpenCVModules_armeabi.cmake includes
+  # OpenCVModules_armeabi-*.cmake, which would match OpenCVModules_armeabi-v7a*.cmake.
+  string(REPLACE - _ modules_file_suffix "_${CMAKE_ANDROID_ARCH_ABI}")
+endif()
 
 if(TARGET ippicv AND NOT BUILD_SHARED_LIBS)
   set(USE_IPPICV TRUE)
