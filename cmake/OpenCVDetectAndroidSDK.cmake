@@ -294,7 +294,7 @@ macro(add_android_project target path)
 
         set_target_properties(${JNI_LIB_NAME} PROPERTIES
             OUTPUT_NAME "${JNI_LIB_NAME}"
-            LIBRARY_OUTPUT_DIRECTORY "${android_proj_bin_dir}/libs/${ANDROID_NDK_ABI_NAME}"
+            LIBRARY_OUTPUT_DIRECTORY "${android_proj_bin_dir}/libs/${CMAKE_ANDROID_ARCH_ABI}"
             )
 
         get_target_property(android_proj_jni_location "${JNI_LIB_NAME}" LOCATION)
