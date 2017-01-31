@@ -57,7 +57,7 @@ endif()
 
 if(NOT DEFINED OpenCV_MODULES_SUFFIX)
   if(ANDROID)
-    string(REPLACE - _ OpenCV_MODULES_SUFFIX "_${ANDROID_NDK_ABI_NAME}")
+    string(REPLACE - _ OpenCV_MODULES_SUFFIX "_${CMAKE_ANDROID_ARCH_ABI}")
   else()
     set(OpenCV_MODULES_SUFFIX "")
   endif()
