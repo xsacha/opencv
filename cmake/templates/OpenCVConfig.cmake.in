@@ -194,7 +194,7 @@ endif()
 # ==============================================================
 #  Check OpenCV availability
 # ==============================================================
-if(ANDROID AND OpenCV_ANDROID_NATIVE_API_LEVEL GREATER ANDROID_NATIVE_API_LEVEL)
+if(ANDROID AND OpenCV_ANDROID_NATIVE_API_LEVEL GREATER CMAKE_SYSTEM_VERSION)
   message(FATAL_ERROR "Minimum required by OpenCV API level is android-${OpenCV_ANDROID_NATIVE_API_LEVEL}")
   #always FATAL_ERROR because we can't say to the caller that OpenCV is not found
   #http://www.mail-archive.com/cmake@cmake.org/msg37831.html

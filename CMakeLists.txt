@@ -87,8 +87,8 @@ endif()
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.16.24.tar.gz"
-    SHA1 "00ab627d3d4fe5151e15b6ab2b1b1da17650984a"
+    URL "https://github.com/ruslo/hunter/archive/v0.18.1.tar.gz"
+    SHA1 "c1aa0ef5191e4484889866c62263a64f1ee61d3e"
 )
 
 project(OpenCV CXX C)
@@ -300,11 +300,8 @@ include(cmake/OpenCVVersion.cmake)
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin" CACHE PATH "Output directory for applications" )
 
 if (ANDROID)
-  if (ANDROID_ABI MATCHES "NEON")
+  if (CMAKE_ANDROID_ARM_NEON)
     set(ENABLE_NEON ON)
-  endif()
-  if (ANDROID_ABI MATCHES "VFPV3")
-    set(ENABLE_VFPV3 ON)
   endif()
 endif()
 
@@ -812,16 +809,12 @@ status("    Unavailable:"            OPENCV_MODULES_DISABLED_FORCE THEN ${OPENCV
 if(ANDROID)
   status("")
   status("  Android: ")
-  status("    Android ABI:" ${ANDROID_ABI})
+  status("    Android ABI:" ${CMAKE_ANDROID_ARCH_ABI})
   status("    STL type:" ${ANDROID_STL})
-  status("    Native API level:" android-${ANDROID_NATIVE_API_LEVEL})
-  android_get_compatible_target(android_sdk_target_status ${ANDROID_NATIVE_API_LEVEL} ${ANDROID_SDK_TARGET} 11)
+  status("    Native API level:" android-${CMAKE_SYSTEM_VERSION})
+  android_get_compatible_target(android_sdk_target_status ${CMAKE_SYSTEM_VERSION} ${ANDROID_SDK_TARGET} 11)
   status("    SDK target:" "${android_sdk_target_status}")
-  if(BUILD_WITH_ANDROID_NDK)
-    status("    Android NDK:" "${ANDROID_NDK} (toolchain: ${ANDROID_TOOLCHAIN_NAME})")
-  elseif(BUILD_WITH_STANDALONE_TOOLCHAIN)
-    status("    Android toolchain:" "${ANDROID_STANDALONE_TOOLCHAIN}")
-  endif()
+  status("    Android NDK:" "${CMAKE_ANDROID_NDK} (toolchain: ${CMAKE_ANDROID_NDK_TOOLCHAIN_VERSION})")
   status("    android tool:"  ANDROID_EXECUTABLE  THEN "${ANDROID_EXECUTABLE} (${ANDROID_TOOLS_Pkg_Desc})" ELSE NO)
   status("    Google Play manager:" BUILD_ANDROID_SERVICE                                         THEN YES ELSE NO)
   status("    Android examples:"    BUILD_ANDROID_EXAMPLES AND CAN_BUILD_ANDROID_PROJECTS         THEN YES ELSE NO)
