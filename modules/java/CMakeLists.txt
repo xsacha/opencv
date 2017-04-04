@@ -2,7 +2,7 @@
 #  CMake file for java support
 # ----------------------------------------------------------------------------
 if(APPLE_FRAMEWORK OR WINRT OR NOT PYTHON_DEFAULT_AVAILABLE OR NOT ANT_EXECUTABLE
-    OR NOT (JNI_FOUND OR (ANDROID AND ANDROID_NATIVE_API_LEVEL GREATER 7))
+    OR NOT (JNI_FOUND OR (ANDROID AND CMAKE_SYSTEM_VERSION GREATER 7))
     OR BUILD_opencv_world
     )
   ocv_module_disable(java)
@@ -231,7 +231,7 @@ else()
   list(REMOVE_ITEM handwrittren_lib_project_files_rel "${ANDROID_MANIFEST_FILE}")
 
   #  calc default SDK Target
-  android_get_compatible_target(android_sdk_target ${ANDROID_NATIVE_API_LEVEL} ${ANDROID_SDK_TARGET} 11)
+  android_get_compatible_target(android_sdk_target ${CMAKE_SYSTEM_VERSION} ${ANDROID_SDK_TARGET} 11)
   string(REGEX REPLACE "android-" "" android_sdk_target_num ${android_sdk_target})
   # filter out
   if( (ANDROID_SDK_TARGET AND ANDROID_SDK_TARGET LESS 21) OR (android_sdk_target_num LESS 21) )
@@ -340,7 +340,7 @@ if(ANDROID AND ANDROID_EXECUTABLE)
   set(lib_target_files ${ANDROID_LIB_PROJECT_FILES})
   ocv_list_add_prefix(lib_target_files "${OpenCV_BINARY_DIR}/")
 
-  android_get_compatible_target(lib_target_sdk_target ${ANDROID_NATIVE_API_LEVEL} ${ANDROID_SDK_TARGET} 14)
+  android_get_compatible_target(lib_target_sdk_target ${CMAKE_SYSTEM_VERSION} ${ANDROID_SDK_TARGET} 14)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/android_lib/${ANDROID_MANIFEST_FILE}" "${CMAKE_CURRENT_BINARY_DIR}/${ANDROID_MANIFEST_FILE}" @ONLY)
 
   add_custom_command(OUTPUT ${lib_target_files} "${OpenCV_BINARY_DIR}/${ANDROID_MANIFEST_FILE}"
