@@ -49,7 +49,7 @@ get_filename_component(java_name "${java_location}" NAME)
 # build java part
 add_custom_command(
     OUTPUT "${opencv_test_java_bin_dir}/bin/OpenCVTest-debug.apk"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${java_location}" "${opencv_test_java_bin_dir}/libs/${ANDROID_NDK_ABI_NAME}/${java_name}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${java_location}" "${opencv_test_java_bin_dir}/libs/${CMAKE_ANDROID_ARCH_ABI}/${java_name}"
     COMMAND ${ANT_EXECUTABLE} -q -noinput -k debug -Djava.target=1.6 -Djava.source=1.6
     COMMAND ${CMAKE_COMMAND} -E touch "${opencv_test_java_bin_dir}/bin/OpenCVTest-debug.apk" # needed because ant does not update the timestamp of updated apk
     WORKING_DIRECTORY "${opencv_test_java_bin_dir}"
