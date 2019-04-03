@@ -108,6 +108,10 @@ set(OpenCV_USE_MANGLED_PATHS @OpenCV_USE_MANGLED_PATHS_CONFIGCMAKE@)
 set(OpenCV_LIB_COMPONENTS @OPENCV_MODULES_CONFIGCMAKE@)
 set(OpenCV_INCLUDE_DIRS @OpenCV_INCLUDE_DIRS_CONFIGCMAKE@)
 
+if(APPLE)
+  find_package(accelerate REQUIRED)
+endif()
+
 if(NOT TARGET opencv_core)
   include(${CMAKE_CURRENT_LIST_DIR}/OpenCVModules${OpenCV_MODULES_SUFFIX}.cmake)
 endif()
@@ -376,4 +380,3 @@ if("@Qt5OpenGL_FOUND@")
   find_dependency(Qt5OpenGL)
 endif()
 # AWP: Qt5 dependencies -- end
-
