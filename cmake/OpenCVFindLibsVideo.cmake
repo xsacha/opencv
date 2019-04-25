@@ -186,6 +186,8 @@ endif(WITH_XIMEA)
 ocv_clear_vars(HAVE_FFMPEG)
 if(WITH_FFMPEG)  # try FFmpeg autodetection
   if(OPENCV_FFMPEG_USE_FIND_PACKAGE)
+    if(NOT HUNTER_ENABLED)
+
     if(OPENCV_FFMPEG_USE_FIND_PACKAGE STREQUAL "1" OR OPENCV_FFMPEG_USE_FIND_PACKAGE STREQUAL "ON")
       set(OPENCV_FFMPEG_USE_FIND_PACKAGE "FFMPEG")
     endif()
@@ -194,6 +196,23 @@ if(WITH_FFMPEG)  # try FFmpeg autodetection
       set(HAVE_FFMPEG TRUE)
     else()
       message(STATUS "Can't find FFmpeg via find_package(${OPENCV_FFMPEG_USE_FIND_PACKAGE})")
+    endif()
+
+    else(HUNTER_ENABLED)
+      hunter_add_package(ffmpeg)
+      find_package(ffmpeg CONFIG REQUIRED)
+
+      set(FFMPEG_FOUND TRUE)
+      foreach(lib avcodec avformat avutil swresample swscale)
+        get_target_property(
+          ${lib}_INCLUDE_DIR
+          ffmpeg::${lib}
+          INTERFACE_INCLUDE_DIRECTORIES
+          )
+        list(APPEND FFMPEG_INCLUDE_DIRS "${${lib}_INCLUDE_DIR}")
+        list(APPEND FFMPEG_LIBRARIES "ffmpeg::${lib}")
+      endforeach()
+      list(REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
     endif()
   elseif(WIN32 AND NOT ARM AND NOT OPENCV_FFMPEG_SKIP_DOWNLOAD)
     include("${OpenCV_SOURCE_DIR}/3rdparty/ffmpeg/ffmpeg.cmake")
